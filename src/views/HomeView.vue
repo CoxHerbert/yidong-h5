@@ -16,18 +16,18 @@
       <img class="gif-img" src="../assets/home-hand.gif" alt="" />
       <span class="rainbow">第一步：输入手机号</span>
     </div>
-    <el-input
+    <van-field
       v-model="phone"
-      type="number"
+      type="tel"
       maxlength="11"
       class="phone-input"
       placeholder="请输入您的手机号"
     />
     <div class="agree-row">
-      <el-checkbox v-model="agree" class="circle-checkbox">
+      <van-checkbox v-model="agree" class="circle-checkbox">
         我已阅读并同意
         <span class="privacy-text" @click.stop="openPersonal">《个人信息收集证明》</span>
-      </el-checkbox>
+      </van-checkbox>
     </div>
     <div class="btn-container">
       <img class="btn" src="../assets/home-btn.gif" alt="" @click="submit" />
@@ -42,16 +42,13 @@
 <script setup>
 import { ref, getCurrentInstance } from 'vue'
 import personalInformation from '@/components/personal-information.vue'
-import axios from 'axios'
 import { throttle } from 'lodash'
-import { ElMessage } from 'element-plus'
+import { showFailToast } from 'vant'
 import AgreeDialog from '../components/agree-dialog.vue'
 import { validPhone } from '@/utils/rule'
 import ConfirmOrder from '@/components/confirm-order.vue'
+import { getProduct } from '@/api/bizHandle'
 
-const { VITE_APP_ENV, VITE_APP_API_BASE_URL, VITE_APP_BASE_API } = import.meta.env
-axios.defaults.baseURL =
-  VITE_APP_ENV === 'production' ? VITE_APP_API_BASE_URL + VITE_APP_BASE_API : VITE_APP_API_BASE_URL
 const { proxy } = getCurrentInstance()
 const phone = ref('')
 const agreeDialogRef = ref(null)
@@ -79,12 +76,10 @@ const submit = throttle(async () => {
     return
   }
   try {
-    const res = await axios.get('/api/bizHandle/getProduct', {
-      params: {
-        mobile: phone.value,
-      },
+    const res = await getProduct({
+      mobile: phone.value,
     })
-    if (res.data.code === 200) {
+    if (res.code === 200) {
       const data = {
         productId: res.data.data.productId,
         phone: phone.value,
@@ -92,13 +87,11 @@ const submit = throttle(async () => {
       }
       proxy.$refs.confirmOrderRef.open(data)
     } else {
-      ElMessage({
-        message: res.data.msg,
-        type: 'error',
-      })
+      showFailToast(res.msg || '获取产品信息失败，请稍后重试')
     }
   } catch (error) {
     console.error('请求错误:', error)
+    showFailToast('获取产品信息失败，请稍后重试')
   }
 }, 1000)
 
@@ -108,7 +101,9 @@ const openPersonal = () => {
 
 const handleAgree = (e) => {
   agree.value = e
-  if (e == true && phone.value) submit()
+  if (e === true && phone.value) {
+    submit()
+  }
 }
 </script>
 <style scoped>
@@ -195,13 +190,14 @@ img {
   z-index: 99;
 }
 
-.phone-input :deep(.el-input__wrapper) {
+.phone-input :deep(.van-cell) {
   height: 12vw;
   padding: 0 5vw;
   border-radius: 6.5vw;
+  background: rgba(255, 255, 255, 0.8);
 }
 
-.phone-input :deep(.el-input__inner) {
+.phone-input :deep(.van-field__control) {
   font-weight: 900;
   color: #000;
 }
@@ -273,19 +269,21 @@ img {
   z-index: 99;
 }
 
-:deep(.circle-checkbox .el-checkbox__inner) {
-  border-radius: 50%; /* 改成圆形 */
+:deep(.circle-checkbox .van-checkbox__icon) {
+  border-radius: 50%;
+  background: transparent;
+  border-color: #fff;
 }
 
-:deep(.circle-checkbox .el-checkbox__label) {
+:deep(.circle-checkbox .van-checkbox--checked .van-checkbox__icon) {
+  background-color: #f1a90e;
+  border-color: #f1a90e;
+  color: #fff;
+}
+
+:deep(.circle-checkbox .van-checkbox__label) {
   color: #fff;
   font-size: 16px;
-}
-
-.agree-row :deep(.is-checked) {
-  --el-checkbox-checked-bg-color: #f1a90e;
-  --el-checkbox-checked-icon-color: #fff;
-  --el-checkbox-checked-input-border-color: #f1a90e;
 }
 
 .privacy-text {
