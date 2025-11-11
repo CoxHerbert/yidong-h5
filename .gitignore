@@ -1,0 +1,7 @@
+node_modules
+
+dist/
+dist_dev/
+dist_test/
+
+.env.localhost
