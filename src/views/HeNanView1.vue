@@ -1,23 +1,23 @@
 <template>
   <div class="page">
     <img class="banner" src="../assets/1ex5vw/banner.png" alt="" />
-    <el-input
+    <van-field
       v-model="phone"
-      type="number"
+      type="tel"
       maxlength="11"
       class="input"
       placeholder="请输入您的手机号码"
     />
     <div class="input flex">
-      <el-input v-model="code" type="number" class="code-input" placeholder="请输入短信验证码" />
-      <el-button class="code-btn" round :disabled="disabled" @click="getCode">
+      <van-field v-model="code" type="digit" class="code-input" placeholder="请输入短信验证码" />
+      <van-button class="code-btn" round :disabled="disabled" @click="getCode">
         {{ codeText }}
-      </el-button>
+      </van-button>
     </div>
     <img class="btn" src="../assets/1ex5vw/btn.gif" alt="" @click="submit" />
     <div class="flex-col">
       <div class="agree-row">
-        <el-checkbox v-model="agree" class="circle-checkbox"> 我已阅读并同意</el-checkbox>
+        <van-checkbox v-model="agree" class="circle-checkbox"> 我已阅读并同意</van-checkbox>
         <span @click="openPrivacy1">《产品介绍》</span>
         和
         <span @click="openPrivacy2">《隐私条款》</span>
@@ -52,18 +52,15 @@
   </div>
 </template>
 <script setup>
-import { ref, getCurrentInstance, onMounted } from 'vue'
+import { ref, getCurrentInstance, onMounted, onBeforeUnmount } from 'vue'
 import HnPolicy1 from '../components/hn1-policy1.vue'
 import HnPolicy2 from '../components/public-privacy-policy.vue'
-import axios from 'axios'
+import { confirmBook, sendVerifyCode } from '@/api/bizHandle'
 import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { showFailToast, showSuccessToast, showToast } from 'vant'
 import { throttle } from 'lodash'
 import { validPhone } from '@/utils/rule'
 
-const { VITE_APP_ENV, VITE_APP_API_BASE_URL, VITE_APP_BASE_API } = import.meta.env
-axios.defaults.baseURL =
-  VITE_APP_ENV === 'production' ? VITE_APP_API_BASE_URL + VITE_APP_BASE_API : VITE_APP_API_BASE_URL
 const route = useRoute()
 const { proxy } = getCurrentInstance()
 const phone = ref('')
@@ -72,6 +69,7 @@ const codeText = ref('获取验证码')
 const disabled = ref(false)
 const verifyKey = ref(null)
 const agree = ref(false)
+const countdownTimer = ref(null)
 
 onMounted(() => {
   phone.value = route.query.phone
@@ -85,89 +83,85 @@ const openPrivacy1 = () => {
 const openPrivacy2 = () => {
   proxy.$refs.hnPolicyRef2.openDialog()
 }
+const resetCountdown = () => {
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value)
+  }
+  countdownTimer.value = null
+  codeText.value = '获取验证码'
+  disabled.value = false
+}
+
+const startCountdown = () => {
+  let time = 60
+  codeText.value = `${time}秒后重新获取`
+  disabled.value = true
+  countdownTimer.value = setInterval(() => {
+    time--
+    codeText.value = `${time}秒后重新获取`
+    if (time <= 0) {
+      resetCountdown()
+    }
+  }, 1000)
+}
+
 const getCode = async () => {
   if (disabled.value) return
   const isValid = await validPhone(phone.value)
-  if (!isValid) return // 校验不通过，直接结束
+  if (!isValid) return
   try {
-    const res = await axios.get('/api/bizHandle/sendVerifyCode', {
-      params: {
-        mobile: phone.value,
-        productId: route.query.productId,
-      },
+    const res = await sendVerifyCode({
+      mobile: phone.value,
+      productId: route.query.productId,
     })
-    if (res.data.code === 200) {
-      verifyKey.value = res.data.data
-      disabled.value = true
-      let time = 60
-      codeText.value = `${time}秒后重新获取`
-      const timer = setInterval(() => {
-        time--
-        codeText.value = `${time}秒后重新获取`
-        if (time <= 0) {
-          clearInterval(timer)
-          codeText.value = '获取验证码'
-          disabled.value = false
-        }
-      }, 1000)
+    if (res.code === 200) {
+      verifyKey.value = res.data
+      startCountdown()
     } else {
-      ElMessage({
-        message: res.data.msg,
-        type: 'error',
-      })
+      showFailToast(res.msg || '验证码发送失败')
+      resetCountdown()
     }
   } catch (error) {
     console.error('请求错误:', error)
+    showFailToast('验证码发送失败，请稍后重试')
+    resetCountdown()
   }
 }
 const submit = throttle(async () => {
-  if (!phone.value) {
-    ElMessage({
-      message: '请输入手机号',
-      type: 'warning',
-    })
-    return
-  }
+  const isValid = await validPhone(phone.value)
+  if (!isValid) return
   if (!code.value) {
-    ElMessage({
-      message: '请输入验证码',
-      type: 'warning',
-    })
+    showToast({ message: '请输入验证码', type: 'fail' })
     return
   }
   if (!agree.value) {
-    ElMessage({
-      message: '请先阅读并同意《产品介绍》与《隐私条款》',
-      type: 'warning',
-    })
+    showToast({ message: '请先阅读并同意相关协议', type: 'fail' })
     return
   }
   try {
-    const res = await axios.get('/api/bizHandle/confirmBook', {
-      params: {
-        mobile: phone.value,
-        productId: route.query.productId,
-        verifyCode: code.value,
-        verifyKey: verifyKey.value,
-      },
+    const res = await confirmBook({
+      mobile: phone.value,
+      productId: route.query.productId,
+      verifyCode: code.value,
+      verifyKey: verifyKey.value,
     })
-    if (res.data.code === 200) {
-      ElMessage({
-        message: '办理成功',
-        type: 'success',
-      })
+    if (res.code === 200) {
+      showSuccessToast('办理成功')
       code.value = ''
       verifyKey.value = null
+      resetCountdown()
     } else {
-      ElMessage({
-        message: res.data.msg,
-        type: 'error',
-      })
+      showFailToast(res.msg || '办理失败，请稍后重试')
     }
   } catch (error) {
     console.error('请求错误:', error)
+    showFailToast('办理失败，请稍后重试')
   }
 }, 1000)
+onBeforeUnmount(() => {
+  resetCountdown()
+})
+
 </script>
 <style scoped>
 img {
@@ -206,11 +200,11 @@ img {
   text-align: center;
 }
 
-:deep(.circle-checkbox .el-checkbox__inner) {
+:deep(.circle-checkbox .van-checkbox__icon) {
   border-radius: 50%; /* 改成圆形 */
 }
 
-:deep(.circle-checkbox .el-checkbox__label) {
+:deep(.circle-checkbox .van-checkbox__label) {
   color: #fff;
   font-size: 14px;
 }
@@ -258,7 +252,7 @@ img {
   box-sizing: border-box;
 }
 
-.input :deep(.el-input__wrapper) {
+.input :deep(.van-cell) {
   border-radius: 30px;
   border: 0;
   box-shadow: none;

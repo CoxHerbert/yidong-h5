@@ -1,18 +1,24 @@
 <template>
   <div class="page">
     <img class="banner" src="../assets/4rpxjs/banner.png" alt="" />
-    <el-input
+    <van-field
       v-model="phone"
-      type="number"
+      type="tel"
       maxlength="11"
-      class="input"
+      class="phone-field"
       placeholder="请输入您的手机号码"
     />
-    <div class="input flex">
-      <el-input v-model="code" type="number" class="code-input" placeholder="请输入短信验证码" />
-      <el-button class="code-btn" round :disabled="disabled" @click="getCode">
+    <div class="code-wrapper flex">
+      <van-field
+        v-model="code"
+        type="digit"
+        class="code-input"
+        placeholder="请输入短信验证码"
+        maxlength="6"
+      />
+      <van-button class="code-btn" round :disabled="disabled" @click="getCode">
         {{ codeText }}
-      </el-button>
+      </van-button>
     </div>
     <img class="btn" src="../assets/4rpxjs/btn.png" alt="" @click="submit" />
     <div class="flex-col">
@@ -21,7 +27,7 @@
         <a href="tel:4000852229">4000852229</a>
       </div>
       <div class="agree-row">
-        <el-checkbox v-model="agree" class="circle-checkbox"> 我已阅读并同意</el-checkbox>
+        <van-checkbox v-model="agree" class="circle-checkbox"> 我已阅读并同意</van-checkbox>
         <span @click="openPrivacy1">《用户受理协议》</span>
         、
         <span @click="openPrivacy2">《个人隐私协议》</span>
@@ -32,8 +38,8 @@
     <div class="rule">
       <div class="title">业务规则</div>
       <span
-        >一、<span style="color: rgb(255, 0, 0)">动感地带电竞融合包，20元/月</span
-        >，包含动感地带电竞包15元定制版专属权益《英魂之刃》（点券90，超值钻石袋*6），咪咕快游会员，移动云盘图文AI权益。
+        >一、<span style="color: rgb(255, 0, 0)">动感地带电竞融合包，20元/月</span>
+        ，包含动感地带电竞包15元定制版专属权益《英魂之刃》（点券90，超值钻石袋*6），咪咕快游会员，移动云盘图文AI权益。
         <span style="color: rgb(255, 0, 0)">
           本产品限甘肃移动客户办理，开通成功立即生效，未退订保持按月生效，费用按月扣取，赠送和折扣的话费不可抵扣。</span
         > </span
@@ -70,7 +76,7 @@
       ><br />
       <span style="color: rgb(255, 0, 0)">五、注意事项：</span><br />
       <span style="color: rgb(255, 0, 0)"
-        >1、本活动的参与者（又称“客户”）应为具有完全民事行为能力的自然人，未成年人需在其法定监护人的指导及同意下才可参加。</span
+        >1、本活动的参与者（又称“客户”）应为具有完全民事行为力的自然人，未成年人需在其法定监护人的指导及同意下才可参加。</span
       ><br />
       <span style="color: rgb(255, 0, 0)"
         >2、本活动仅限中国移动客户参加，同一客户仅限使用一个手机号参与本次活动且每个客户仅限购买一次。同一手机号、同一设备、身份证以及其他信息相同的，均视为同一客户。</span
@@ -85,19 +91,17 @@
     <gs-policy2 ref="gsPolicyRef2" />
   </div>
 </template>
+
 <script setup>
-import { ref, getCurrentInstance, onMounted } from 'vue'
+import { getCurrentInstance, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
+import { throttle } from 'lodash'
+import { showFailToast, showSuccessToast, showToast } from 'vant'
+import { confirmBook, sendVerifyCode } from '@/api/bizHandle'
+import { validPhone } from '@/utils/rule'
 import GsPolicy1 from '../components/gs-policy1.vue'
 import GsPolicy2 from '../components/gs-policy2.vue'
-import axios from 'axios'
-import { useRoute } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { throttle } from 'lodash'
-import { validPhone } from '@/utils/rule'
 
-const { VITE_APP_ENV, VITE_APP_API_BASE_URL, VITE_APP_BASE_API } = import.meta.env
-axios.defaults.baseURL =
-  VITE_APP_ENV === 'production' ? VITE_APP_API_BASE_URL + VITE_APP_BASE_API : VITE_APP_API_BASE_URL
 const route = useRoute()
 const { proxy } = getCurrentInstance()
 const phone = ref('')
@@ -106,6 +110,7 @@ const codeText = ref('获取验证码')
 const disabled = ref(false)
 const verifyKey = ref(null)
 const agree = ref(false)
+const countdownTimer = ref(null)
 
 onMounted(() => {
   phone.value = route.query.phone
@@ -113,96 +118,98 @@ onMounted(() => {
     getCode()
   }
 })
+
+onBeforeUnmount(() => {
+  resetCountdown()
+})
+
 const openPrivacy1 = () => {
   proxy.$refs.gsPolicyRef1.openDialog()
 }
 const openPrivacy2 = () => {
   proxy.$refs.gsPolicyRef2.openDialog()
 }
+
+const resetCountdown = () => {
+  if (countdownTimer.value) {
+    clearInterval(countdownTimer.value)
+  }
+  countdownTimer.value = null
+  codeText.value = '获取验证码'
+  disabled.value = false
+}
+
+const startCountdown = () => {
+  let time = 60
+  codeText.value = `${time}秒后重新获取`
+  disabled.value = true
+  countdownTimer.value = setInterval(() => {
+    time--
+    codeText.value = `${time}秒后重新获取`
+    if (time <= 0) {
+      resetCountdown()
+    }
+  }, 1000)
+}
+
 const getCode = async () => {
   if (disabled.value) return
   const isValid = await validPhone(phone.value)
-  if (!isValid) return // 校验不通过，直接结束
+  if (!isValid) return
   try {
-    const res = await axios.get('/api/bizHandle/sendVerifyCode', {
-      params: {
-        mobile: phone.value,
-        productId: route.query.productId,
-      },
+    const res = await sendVerifyCode({
+      mobile: phone.value,
+      productId: route.query.productId,
     })
-    if (res.data.code === 200) {
-      verifyKey.value = res.data.data
-      disabled.value = true
-      let time = 60
-      codeText.value = `${time}秒后重新获取`
-      const timer = setInterval(() => {
-        time--
-        codeText.value = `${time}秒后重新获取`
-        if (time <= 0) {
-          clearInterval(timer)
-          codeText.value = '获取验证码'
-          disabled.value = false
-        }
-      }, 1000)
+    if (res.code === 200) {
+      verifyKey.value = res.data
+      startCountdown()
     } else {
-      ElMessage({
-        message: res.data.msg,
-        type: 'error',
-      })
+      showFailToast(res.msg || '验证码发送失败')
+      resetCountdown()
     }
   } catch (error) {
     console.error('请求错误:', error)
+    showFailToast('验证码发送失败，请稍后重试')
+    resetCountdown()
   }
 }
+
 const submit = throttle(async () => {
   if (!phone.value) {
-    ElMessage({
-      message: '请输入手机号',
-      type: 'warning',
-    })
+    showToast({ message: '请输入手机号', type: 'fail' })
     return
   }
   if (!code.value) {
-    ElMessage({
-      message: '请输入验证码',
-      type: 'warning',
-    })
+    showToast({ message: '请输入验证码', type: 'fail' })
     return
   }
   if (!agree.value) {
-    ElMessage({
-      message: '请先阅读并同意《产品介绍》与《隐私条款》',
-      type: 'warning',
-    })
+    showToast({ message: '请先阅读并同意相关协议', type: 'fail' })
     return
   }
   try {
-    const res = await axios.get('/api/bizHandle/confirmBook', {
-      params: {
-        mobile: phone.value,
-        productId: route.query.productId,
-        verifyCode: code.value,
-        verifyKey: verifyKey.value,
-      },
+    const res = await confirmBook({
+      mobile: phone.value,
+      productId: route.query.productId,
+      verifyCode: code.value,
+      verifyKey: verifyKey.value,
     })
-    if (res.data.code === 200) {
-      ElMessage({
-        message: '办理成功',
-        type: 'success',
-      })
+    if (res.code === 200) {
+      showSuccessToast('办理成功')
       code.value = ''
       verifyKey.value = null
+      resetCountdown()
     } else {
-      ElMessage({
-        message: res.data.msg,
-        type: 'error',
-      })
+      showFailToast(res.msg || '办理失败，请稍后重试')
     }
   } catch (error) {
     console.error('请求错误:', error)
+    showFailToast('办理失败，请稍后重试')
   }
 }, 1000)
 </script>
+
 <style scoped>
 img {
   display: block;
@@ -251,11 +258,11 @@ img {
   text-align: center;
 }
 
-:deep(.circle-checkbox .el-checkbox__inner) {
-  border-radius: 50%; /* 改成圆形 */
+:deep(.circle-checkbox .van-checkbox__icon) {
+  border-radius: 50%;
 }
 
-:deep(.circle-checkbox .el-checkbox__label) {
+:deep(.circle-checkbox .van-checkbox__label) {
   color: #fff;
   font-size: 14px;
 }
@@ -296,12 +303,15 @@ img {
   align-items: center;
 }
 
-.input {
+.phone-field {
   width: 90%;
   margin-left: 5%;
+  margin-top: 30px;
+}
+
+.phone-field :deep(.van-cell) {
   height: 57px;
   line-height: 57px;
-  margin-top: 30px;
   border: 1px solid #fec802;
   background-color: #fff;
   border-radius: 30px;
@@ -309,11 +319,31 @@ img {
   box-sizing: border-box;
 }
 
-.input :deep(.el-input__wrapper) {
+.phone-field :deep(.van-field__control) {
+  font-size: 16px;
+}
+
+.code-wrapper {
+  width: 90%;
+  margin-left: 5%;
+  margin-top: 20px;
+  border: 1px solid #fec802;
+  background-color: #fff;
   border-radius: 30px;
-  border: 0;
-  box-shadow: none;
+  padding: 0 5px 0 20px;
+  box-sizing: border-box;
+}
+
+.code-input :deep(.van-cell) {
+  background: transparent;
   padding: 0;
+}
+
+.code-input :deep(.van-field__body) {
+  align-items: center;
+}
+
+.code-input :deep(.van-field__control) {
   font-size: 16px;
 }
 

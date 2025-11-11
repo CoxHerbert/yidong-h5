@@ -7,10 +7,24 @@
         <div v-html="nodes"></div>
       </div>
       <div class="input flex">
-        <el-input v-model="code" type="number" class="code-input" placeholder="请输入短信验证码" />
-        <el-button class="code-btn" round :disabled="disabled" :loading="loading" @click="getCode">
+        <van-field
+          v-model="code"
+          type="digit"
+          class="code-input"
+          placeholder="请输入短信验证码"
+          maxlength="6"
+        />
+        <van-button
+          class="code-btn"
+          round
+          type="primary"
+          :disabled="disabled"
+          :loading="loading"
+          loading-text="发送中..."
+          @click="getCode"
+        >
           {{ codeText }}
-        </el-button>
+        </van-button>
       </div>
       <div class="btn-group">
         <div class="btn1" @click="close">残忍拒绝</div>
@@ -19,12 +33,13 @@
     </div>
   </div>
 </template>
+
 <script setup>
-import { ref } from 'vue'
-import axios from 'axios'
+import { onBeforeUnmount, ref } from 'vue'
 import { throttle } from 'lodash'
-import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
+import { showFailToast, showSuccessToast, showToast } from 'vant'
+import { confirmBook, sendVerifyCode } from '@/api/bizHandle'
 
 const route = useRoute()
 const show = ref(false)
@@ -42,22 +57,27 @@ const timer = ref(null)
 const open = (val) => {
   productId.value = val.productId
   phone.value = val.phone
-  // 手机号脱敏显示
   phoneText.value = phone.value.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
   show.value = true
   getCode()
   try {
-    // 富文本显示
     nodes.value = val.productDescribe
-    // 检测nodes里面有没有p标签,有的话，把p标签换成div标签;
     nodes.value = nodes.value.replace(/<p/g, '<div style="line-height: 1.2;"')
     nodes.value = nodes.value.replace(/<\/p>/g, '</div>')
-    // 检测nodes里面有没有<img>,有的话，加上img的样式width: 100%;height: auto;
     nodes.value = nodes.value.replace(
       /<img/g,
       '<img style="width: 100%;height: auto;margin-top: 6px;"',
     )
   } catch (error) {}
+}
+
+const resetTimer = () => {
+  if (timer.value) {
+    clearInterval(timer.value)
+  }
+  timer.value = null
+  disabled.value = false
+  codeText.value = '获取验证码'
 }
 
 const close = () => {
@@ -66,92 +86,87 @@ const close = () => {
   phone.value = ''
   phoneText.value = ''
   code.value = ''
-  codeText.value = '获取验证码'
-  disabled.value = false
   verifyKey.value = null
   show.value = false
-  if (timer.value) {
-    clearInterval(timer.value)
-  }
+  resetTimer()
+}
+
+const startCountdown = () => {
+  let time = 60
+  codeText.value = `获取验证码 (${time})`
+  disabled.value = true
+  timer.value = setInterval(() => {
+    time--
+    codeText.value = `获取验证码 (${time})`
+    if (time <= 0) {
+      resetTimer()
+    }
+  }, 1000)
 }
 
 const getCode = async () => {
   if (disabled.value || loading.value) return
   loading.value = true
-  disabled.value = true
-  let time = 60
-  codeText.value = `获取验证码 (${time})`
-  timer.value = setInterval(() => {
-    time--
-    codeText.value = `获取验证码 (${time})`
-    if (time <= 0) {
-      clearInterval(timer.value)
-      codeText.value = '获取验证码'
-      disabled.value = false
-    }
-  }, 1000)
   try {
-    const res = await axios.get('/api/bizHandle/sendVerifyCode', {
-      params: {
-        mobile: phone.value,
-        productId: productId.value,
-        ...route.query,
-      },
+    const res = await sendVerifyCode({
+      mobile: phone.value,
+      productId: productId.value,
+      ...route.query,
     })
-    if (res.data.code === 200) {
-      verifyKey.value = res.data.data
+    if (res.code === 200) {
+      verifyKey.value = res.data
+      startCountdown()
     } else {
-      ElMessage({
-        message: res.data.msg,
-        type: 'error',
-      })
+      showFailToast(res.msg || '验证码发送失败')
+      resetTimer()
     }
   } catch (error) {
     console.error('请求错误:', error)
+    showFailToast('验证码发送失败，请稍后重试')
+    resetTimer()
   } finally {
     loading.value = false
   }
 }
+
 const submit = throttle(async () => {
   if (!code.value) {
-    ElMessage({
+    showToast({
       message: '请输入验证码',
-      type: 'warning',
+      type: 'fail',
     })
     return
   }
   try {
-    const res = await axios.get('/api/bizHandle/confirmBook', {
-      params: {
-        mobile: phone.value,
-        productId: productId.value,
-        verifyCode: code.value,
-        verifyKey: verifyKey.value,
-      },
+    const res = await confirmBook({
+      mobile: phone.value,
+      productId: productId.value,
+      verifyCode: code.value,
+      verifyKey: verifyKey.value,
     })
-    if (res.data.code === 200) {
-      ElMessage({
-        message: '办理成功',
-        type: 'success',
-      })
+    if (res.code === 200) {
+      showSuccessToast('办理成功')
       code.value = ''
       verifyKey.value = null
       close()
     } else {
-      ElMessage({
-        message: res.data.msg,
-        type: 'error',
-      })
+      showFailToast(res.msg || '办理失败，请稍后重试')
     }
   } catch (error) {
-    console.error('请求错误:', error)
+    console.error('请错误:', error)
+    showFailToast('办理失败，请稍后重试')
   }
 }, 1000)
 
 defineExpose({
   open,
 })
+
+onBeforeUnmount(() => {
+  resetTimer()
+})
 </script>
+
 <style lang="scss" scoped>
 .popup-mask {
   width: 100vw;
@@ -187,7 +202,6 @@ defineExpose({
   .input {
     width: 90%;
     height: 45px;
-    line-height: 45px;
     background-color: #fff;
     border-radius: 25px;
     padding-left: 12.5px;
@@ -196,10 +210,11 @@ defineExpose({
     z-index: 9999;
     display: flex;
     align-items: center;
+    gap: 8px;
     .code-btn {
       width: 41%;
       height: 100%;
-      border-radius: 0 25px 25px 0;
+      border-radius: 25px;
       background: #950e10;
       border: 0;
       color: #fff;
@@ -209,18 +224,20 @@ defineExpose({
       flex: none;
     }
   }
-  .code-input :deep(.el-input__wrapper) {
-    border-radius: 15px;
-    border: 0;
-    box-shadow: none;
-    padding: 0;
-    font-size: 16px;
-    letter-spacing: 1px;
+  .code-input {
+    flex: 1;
   }
-  .code-input :deep(.el-input__inner) {
+  .code-input :deep(.van-cell) {
+    padding: 0;
+    background: transparent;
+  }
+  .code-input :deep(.van-field__body) {
+    align-items: center;
+  }
+  .code-input :deep(.van-field__control) {
+    font-size: 16px;
     font-weight: 600;
     color: #000;
-    margin-top: 2.5px;
   }
   .btn-group {
     display: flex;

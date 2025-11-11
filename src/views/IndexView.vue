@@ -11,9 +11,9 @@
           <span>第1步 输入手机号</span>
         </div>
         <div class="input">
-          <el-input
+          <van-field
             v-model="phone"
-            type="number"
+            type="tel"
             maxlength="11"
             class="phone-input"
             placeholder="请输入您的手机号"
@@ -21,10 +21,10 @@
         </div>
         <img class="btn" src="../assets/index-btn1.gif" alt="" @click="submit" />
         <div class="desc">
-          <el-checkbox v-model="agree">
+          <van-checkbox v-model="agree">
             我已阅读并同意
             <span @click.stop="openPersonal">《个人信息收集证明》</span>
-          </el-checkbox>
+          </van-checkbox>
         </div>
       </div>
     </div>
@@ -48,16 +48,13 @@
 <script setup>
 import { ref, getCurrentInstance } from 'vue'
 import personalInformation from '@/components/personal-information.vue'
-import axios from 'axios'
 import { throttle } from 'lodash'
-import { ElMessage } from 'element-plus'
+import { showFailToast } from 'vant'
 import AgreeDialog from '../components/agree-dialog.vue'
 import { validPhone } from '@/utils/rule'
 import ConfirmOrder from '@/components/confirm-order.vue'
+import { getProduct } from '@/api/bizHandle'
 
-const { VITE_APP_ENV, VITE_APP_API_BASE_URL, VITE_APP_BASE_API } = import.meta.env
-axios.defaults.baseURL =
-  VITE_APP_ENV === 'production' ? VITE_APP_API_BASE_URL + VITE_APP_BASE_API : VITE_APP_API_BASE_URL
 const { proxy } = getCurrentInstance()
 const phone = ref('')
 const agreeDialogRef = ref(null)
@@ -73,12 +70,10 @@ const submit = throttle(async () => {
     return
   }
   try {
-    const res = await axios.get('/api/bizHandle/getProduct', {
-      params: {
-        mobile: phone.value,
-      },
+    const res = await getProduct({
+      mobile: phone.value,
     })
-    if (res.data.code === 200) {
+    if (res.code === 200) {
       const data = {
         productId: res.data.data.productId,
         phone: phone.value,
@@ -86,13 +81,11 @@ const submit = throttle(async () => {
       }
       proxy.$refs.confirmOrderRef.open(data)
     } else {
-      ElMessage({
-        message: res.data.msg,
-        type: 'error',
-      })
+      showFailToast(res.msg || '获取产品信息失败，请稍后重试')
     }
   } catch (error) {
     console.error('请求错误:', error)
+    showFailToast('获取产品信息失败，请稍后重试')
   }
 }, 1000)
 
@@ -164,7 +157,7 @@ img {
   justify-content: center;
   position: relative;
   margin-top: -34px;
-  :deep(.el-checkbox__label) {
+  :deep(.van-checkbox__label) {
     color: rgba(18, 18, 18, 0.9);
     font-size: 10px;
     font-weight: 500;
@@ -187,11 +180,11 @@ img {
     font-size: 16px;
     letter-spacing: 1px;
   }
-  .phone-input :deep(.el-input__wrapper) {
+  .phone-input :deep(.van-cell) {
     padding: 0 13px;
     border-radius: 25px;
   }
-  .phone-input :deep(.el-input__inner) {
+  .phone-input :deep(.van-field__control) {
     font-weight: 900;
     color: #000;
   }
