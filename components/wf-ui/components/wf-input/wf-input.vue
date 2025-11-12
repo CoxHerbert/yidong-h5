@@ -1,40 +1,65 @@
 <template>
-	<view class="wf-input">
-		<u-input
-			v-model="text"
-			:type="typeDic[column.type]"
-			:maxlength="column.maxlength || 350"
-			:placeholder="getPlaceholder(column, column.type)"
-			:disabled="disabled"
-			:height="column.height || '70rpx'"
-			:border="column.border || false"
-			@click.native="handleClick"
-			@focus="handleFocus"
-			@blur="handleBlur"
-		/>
-	</view>
+  <div class="wf-input">
+    <van-field
+      v-model="fieldValue"
+      :type="fieldType"
+      :maxlength="column.maxlength ?? 350"
+      :placeholder="placeholder"
+      :disabled="disabled"
+      :readonly="column.readonly"
+      :formatter="column.formatter"
+      :clearable="column.clearable !== false"
+      :rows="column.rows"
+      :autosize="column.type === 'textarea' ? column.autosize ?? true : undefined"
+      @focus="handleFocus"
+      @blur="handleBlur"
+      @click="handleClick"
+    />
+  </div>
 </template>
 
-<script>
-import Props from '../../mixins/props.js'
-export default {
-	name: 'wf-input',
-	mixins: [Props],
-	data() {
-		return {
-			typeDic: {
-				input: 'text',
-				number: 'digit',
-				textarea: 'textarea',
-				password: 'password'
-			}
-		}
-	}
+<script setup>
+import { computed } from 'vue';
+import { useFieldValue } from '../../composables/useFieldValue.js';
+
+const props = defineProps({
+  modelValue: { type: [String, Number, Array, Object], default: undefined },
+  column: { type: Object, required: true },
+  disabled: Boolean,
+  dic: { type: Array, default: () => [] },
+  dynamicIndex: Number,
+});
+
+const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change']);
+
+const { value, placeholder, focus, blur, click } = useFieldValue(props, emit);
+
+const typeMap = {
+  input: 'text',
+  password: 'password',
+  textarea: 'textarea',
+  number: 'digit',
+};
+
+const fieldType = computed(() => typeMap[props.column.type] || 'text');
+
+const fieldValue = value;
+
+function handleFocus(event) {
+  focus(event);
+}
+
+function handleBlur(event) {
+  blur(event);
+}
+
+function handleClick(event) {
+  click(event);
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .wf-input {
-	width: 100%;
+  width: 100%;
 }
 </style>

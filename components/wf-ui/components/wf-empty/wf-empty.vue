@@ -1,50 +1,18 @@
 <template>
-	<u-empty
-		:mode="mode"
-		:text="text"
-		:src="src || imageUrl"
-		:icon-size="iconSize"
-		:margin-top="marginTop || marginTOP"
-		:font-size="fontSize"
-	></u-empty>
+  <van-empty :description="text" :image="icon" class="wf-empty">
+    <slot />
+  </van-empty>
 </template>
 
-<script>
-export default {
-	name: 'wf-empty',
-	props: {
-		text: { type: String },
-		mode: {
-			type: String,
-			default: () => {
-				return 'list'
-			}
-		},
-		src: { type: String },
-		iconSize: {
-			type: String,
-			default: () => {
-				return '263'
-			}
-		},
-		marginTop: { type: String },
-		fontSize: {
-			type: String,
-			default: () => {
-				return '30'
-			}
-		}
-	},
-	data() {
-		return { imageUrl: `${this.wfImage}/public/empty.png`, marginTOP: 0 }
-	},
-	created() {
-		const { screenHeight } = uni.getSystemInfoSync()
-		if (!this.marginTop) {
-			this.marginTOP = screenHeight / 2.5
-		}
-	}
-}
+<script setup>
+const props = defineProps({
+  text: { type: String, default: '暂无数据' },
+  icon: { type: String, default: 'default' },
+});
 </script>
 
-<style></style>
+<style scoped>
+.wf-empty {
+  padding: 24px 0;
+}
+</style>

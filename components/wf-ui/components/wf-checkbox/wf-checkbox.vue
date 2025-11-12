@@ -1,49 +1,45 @@
 <template>
-	<view class="wf-checkbox">
-		<u-checkbox-group :disabled="disabled" @change="onChange" @click.native="handleClick">
-			<u-checkbox v-model="item.checked" v-for="(item, index) in list" :key="index" :name="item[valueKey]">
-				{{ item[labelKey] }}
-			</u-checkbox>
-		</u-checkbox-group>
-	</view>
+  <van-checkbox-group
+    v-model="fieldValue"
+    :disabled="disabled"
+    direction="horizontal"
+  >
+    <van-checkbox
+      v-for="item in options"
+      :key="item.value"
+      :name="item.value"
+    >
+      {{ item.label }}
+    </van-checkbox>
+  </van-checkbox-group>
 </template>
 
-<script>
-import Props from '../../mixins/props.js'
-export default {
-	name: 'wf-checkbox',
-	mixins: [Props],
-	watch: {
-		dic: {
-			handler(val) {
-				if (!this.validateNull(val)) this.initValue()
-			},
-			deep: true
-		}
-	},
-	data() {
-		return { list: [] }
-	},
-	methods: {
-		initValue() {
-			if (this.validateNull(this.dic)) return
-			if (this.text) {
-				const valueArr = (this.text + '').split(',')
-				this.dic.forEach((v, i) => {
-					if (valueArr.find(val => val == v[this.valueKey])) v.checked = true
-					else v.checked = false
-				})
-			}
-			this.list = this.deepClone(this.dic)
-		},
-		onChange(val) {
-			this.text = val
-		}
-	}
-}
-</script>
+<script setup>
+import { computed } from 'vue';
+import { useFieldValue } from '../../composables/useFieldValue.js';
+import { DIC_PROPS } from '../../util/variable.js';
 
-<style lang="scss" scoped>
-.wf-checkbox {
-}
-</style>
+const props = defineProps({
+  modelValue: { type: [Array, String], default: () => [] },
+  column: { type: Object, required: true },
+  dic: { type: Array, default: () => [] },
+  disabled: Boolean,
+  dynamicIndex: Number,
+});
+
+const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change']);
+
+const { value } = useFieldValue(props, emit);
+
+const propsMap = computed(() => ({ ...DIC_PROPS, ...(props.column.props || {}) }));
+
+const options = computed(() => {
+  const map = propsMap.value;
+  return (props.dic || []).map((item) => ({
+    value: item[map.value],
+    label: item[map.label],
+  }));
+});
+
+const fieldValue = value;
+</script>
