@@ -1,0 +1,25 @@
+:root {
+  font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  color: #1f2d3d;
+  background-color: #f5f6fa;
+}
+
+body {
+  margin: 0;
+  font-size: 14px;
+  background: #f5f6fa;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+.van-nav-bar {
+  --van-nav-bar-background: linear-gradient(90deg, #5a7bff 0%, #3a5bff 100%);
+  --van-nav-bar-title-text-color: #fff;
+  --van-nav-bar-icon-color: #fff;
+}
