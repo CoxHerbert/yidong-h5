@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -30,18 +30,12 @@ import { todoList } from '@/api/workflow/process';
 
 import WorkflowTaskList from './components/WorkflowTaskList.vue';
 
-interface Shortcut {
-  name: string;
-  icon: string;
-  route: { name: string; query?: Record<string, any> };
-}
-
 const router = useRouter();
-const tasks = ref<Record<string, any>[]>([]);
+const tasks = ref([]);
 const total = ref(0);
 const loading = ref(false);
 
-const shortcuts: Shortcut[] = [
+const shortcuts = [
   { name: '我的待办', icon: 'todo-list-o', route: { name: 'workflow-mine', query: { current: '0' } } },
   { name: '我的请求', icon: 'user-o', route: { name: 'workflow-mine', query: { current: '1' } } },
   { name: '我的已办', icon: 'passed', route: { name: 'workflow-mine', query: { current: '2' } } },
@@ -54,7 +48,7 @@ async function fetchTodoList() {
   loading.value = true;
   try {
     const response = await todoList({ current: 1, size: 5 });
-    const data = (response as any).data ?? response;
+    const data = response?.data ?? response;
     tasks.value = data?.records || [];
     total.value = data?.total || tasks.value.length;
   } finally {
@@ -62,7 +56,7 @@ async function fetchTodoList() {
   }
 }
 
-function navigate(item: Shortcut) {
+function navigate(item) {
   router.push(item.route);
 }
 </script>

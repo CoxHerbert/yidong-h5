@@ -8,16 +8,12 @@
   <van-empty v-else description="暂无流程图数据" />
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref, watch } from 'vue';
 
-interface BpmnOption {
-  processInsId?: string;
-  taskId?: string;
-  token?: string;
-}
-
-const props = defineProps<{ bpmnOption: BpmnOption | null }>();
+const props = defineProps({
+  bpmnOption: { type: Object, default: null },
+});
 
 const loading = ref(true);
 

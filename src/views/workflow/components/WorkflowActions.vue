@@ -67,35 +67,30 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref, watch } from 'vue';
 import { showConfirmDialog, showToast } from 'vant';
 
 import { useWorkflowStore } from '@/stores/workflow';
 
-interface ButtonItem {
-  buttonKey?: string;
-  name?: string;
-}
-
-const props = defineProps<{
-  loading: boolean;
-  buttonList: ButtonItem[];
-  process: Record<string, any> | null;
-  comment: string;
-}>();
+const props = defineProps({
+  loading: { type: Boolean, default: false },
+  buttonList: { type: Array, default: () => [] },
+  process: { type: Object, default: null },
+  comment: { type: String, default: '' },
+});
 
 const emit = defineEmits(['examine', 'user-select', 'draft', 'rollback', 'terminate', 'withdraw']);
 
 const workflowStore = useWorkflowStore();
-const nodeList = ref<Array<{ name: string; nodeId: string }>>([]);
+const nodeList = ref([]);
 const rollbackSheetVisible = ref(false);
 const selectedAction = ref('');
 
 const buttonMap = computed(() => Object.fromEntries((props.buttonList || []).map((btn) => [btn.buttonKey, btn])));
 
 const moreOptions = computed(() => {
-  const options: Array<{ text: string; value: string }> = [];
+  const options = [];
   if (getButton('wf_transfer')) options.push({ text: getButton('wf_transfer').name || '转办', value: 'transfer' });
   if (getButton('wf_delegate')) options.push({ text: getButton('wf_delegate').name || '委托', value: 'delegate' });
   if (getButton('wf_rollback')) options.push({ text: getButton('wf_rollback').name || '驳回', value: 'rollback' });
@@ -107,7 +102,7 @@ const moreOptions = computed(() => {
   return options;
 });
 
-function getButton(key: string) {
+function getButton(key) {
   return buttonMap.value[key];
 }
 
@@ -120,7 +115,7 @@ watch(
     }
     try {
       const response = await workflowStore.fetchBackNodes({ taskId });
-      const list = (response?.data || response || []) as Array<{ nodeId: string; nodeName: string }>;
+      const list = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
       nodeList.value = list.map((item) => ({ name: item.nodeName, nodeId: item.nodeId }));
     } catch (error) {
       console.warn('[workflow] fetch back nodes failed', error);
@@ -130,7 +125,7 @@ watch(
   { immediate: true }
 );
 
-function handleMoreAction(action: string) {
+function handleMoreAction(action) {
   selectedAction.value = '';
   switch (action) {
     case 'transfer':
@@ -164,12 +159,12 @@ function handleMoreAction(action: string) {
   }
 }
 
-function handleNodeSelect(action: { nodeId: string }) {
+function handleNodeSelect(action) {
   rollbackSheetVisible.value = false;
   emit('rollback', action.nodeId);
 }
 
-function confirmWithdraw(type: 'start' | 'end') {
+function confirmWithdraw(type) {
   const content = type === 'start' ? '确定要撤回重新提交吗？若当前流程无发起人节点，效果同撤销。' : '确定要撤销此流程吗？';
   showConfirmDialog({ title: '提示', message: content })
     .then(() => emit('withdraw', `wf_withdraw_${type}`))

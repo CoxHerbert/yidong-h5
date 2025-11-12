@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -30,20 +30,15 @@ import { doneList, myDoneList, sendList, todoList } from '@/api/workflow/process
 
 import WorkflowTaskList from './components/WorkflowTaskList.vue';
 
-interface TabConfig {
-  name: string;
-  loader: (params: Record<string, any>) => Promise<any>;
-}
-
 const keyword = ref('');
 const activeTab = ref(0);
-const tasks = ref<Record<string, any>[]>([]);
+const tasks = ref([]);
 const loading = ref(false);
 const finished = ref(false);
 const page = ref(1);
 const pageSize = 5;
 
-const tabs: TabConfig[] = [
+const tabs = [
   { name: '我的待办', loader: todoList },
   { name: '我的请求', loader: sendList },
   { name: '我的已办', loader: myDoneList },
@@ -75,7 +70,7 @@ async function fetchList(reset = false) {
       current: page.value,
       size: pageSize,
     });
-    const data = (response as any).data ?? response;
+    const data = response?.data ?? response;
     const records = data?.records || [];
     tasks.value = reset ? records : tasks.value.concat(records);
     finished.value = records.length < pageSize;

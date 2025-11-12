@@ -1,10 +1,5 @@
-export interface GlobalTools {
-  notify: (message: string) => void;
-  reload: () => void;
-}
-
-export const globalTools: GlobalTools = {
-  notify(message: string) {
+export const globalTools = {
+  notify(message) {
     if (typeof window !== 'undefined') {
       window.alert(message);
     } else {

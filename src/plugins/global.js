@@ -1,5 +1,3 @@
-import type { App } from 'vue';
-
 import http from '@/http/api.js';
 import * as wxsdk from '@/utils/wxsdk.js';
 import * as wwsdk from '@/utils/wwxsdk.js';
@@ -7,30 +5,29 @@ import { globalTools } from '../utils/global-tools';
 
 const apiModules = import.meta.glob('@/api/*.js', { eager: true });
 
-type ApiRegistry = Record<string, unknown>;
-
-function resolveApiRegistry(): ApiRegistry {
-  const registry: ApiRegistry = {};
+function resolveApiRegistry() {
+  const registry = {};
 
   Object.values(apiModules).forEach((moduleExports) => {
     if (!moduleExports) return;
 
-    const typedExports = moduleExports as Record<string, unknown> & { default?: Record<string, unknown> };
+    const exportsObject =
+      moduleExports && typeof moduleExports === 'object' ? { ...moduleExports } : {};
 
-    if (typedExports.default && typeof typedExports.default === 'object') {
-      Object.assign(registry, typedExports.default);
+    if (exportsObject.default && typeof exportsObject.default === 'object') {
+      Object.assign(registry, exportsObject.default);
     }
 
-    Object.keys(typedExports).forEach((key) => {
+    Object.keys(exportsObject).forEach((key) => {
       if (key === 'default') return;
-      registry[key] = typedExports[key];
+      registry[key] = exportsObject[key];
     });
   });
 
   return registry;
 }
 
-export function installGlobalPlugins(app: App) {
+export function installGlobalPlugins(app) {
   const apis = resolveApiRegistry();
 
   app.config.globalProperties.$http = http;

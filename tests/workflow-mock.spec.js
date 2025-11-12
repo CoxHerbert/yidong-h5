@@ -30,7 +30,7 @@ describe('workflow mock service', () => {
 
     await store.submitTransferTask({ taskId, assignee: '李四', comment: '请协助处理' });
     await store.fetchTaskDetail(taskId);
-    expect(store.flow.some((item: any) => item.historyActivityName === '转办')).toBe(true);
+    expect(store.flow.some((item) => item.historyActivityName === '转办')).toBe(true);
 
     await store.submitRollbackTask({ taskId, nodeId: 'startNode', comment: '资料补充' });
     await store.fetchTaskDetail(taskId);
@@ -48,6 +48,6 @@ describe('workflow mock service', () => {
 
     expect(store.process?.status).toBe('done');
     expect(store.buttonList.length).toBe(0);
-    expect(store.flow.some((item: any) => item.historyActivityName === '审批通过')).toBe(true);
+    expect(store.flow.some((item) => item.historyActivityName === '审批通过')).toBe(true);
   });
 });

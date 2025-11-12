@@ -4,7 +4,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 // Placeholder for workflow warehouse page
 </script>
 

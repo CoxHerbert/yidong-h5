@@ -25,21 +25,21 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue';
 
 import { useWorkflowForm } from '../composables/useWorkflowForm';
 
-const props = defineProps<{
-  tasks: Array<Record<string, any>>;
-  loading?: boolean;
-}>();
+const props = defineProps({
+  tasks: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+});
 
 const workflow = useWorkflowForm();
 
 const placeholderCount = computed(() => (props.tasks.length > 0 ? 0 : 2));
 
-function handleClick(task: Record<string, any>) {
+function handleClick(task) {
   workflow.dynamicRoute(task, 'detail');
 }
 </script>

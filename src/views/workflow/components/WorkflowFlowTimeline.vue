@@ -57,23 +57,14 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref } from 'vue';
 
-interface FlowRecord {
-  historyActivityType?: string;
-  assigneeName?: string;
-  createTime?: string;
-  historyActivityDurationTime?: string;
-  historyActivityName?: string;
-  comments?: Array<Record<string, any>>;
-  attachments?: Array<{ name: string; url: string }>;
-  endTime?: string;
-}
+const props = defineProps({
+  flow: { type: Array, default: () => [] },
+});
 
-const props = defineProps<{ flow: FlowRecord[] }>();
-
-const commentMap: Record<string, string> = {
+const commentMap = {
   assigneeComment: '变更审核人',
   dispatchComment: '调度意见',
   transferComment: '转办意见',
@@ -87,7 +78,7 @@ const commentMap: Record<string, string> = {
   comment: '审批意见',
 };
 
-const expandedIndex = ref<number | null>(null);
+const expandedIndex = ref(null);
 const defaultCommentCount = 1;
 
 const filteredFlow = computed(() =>
@@ -96,14 +87,14 @@ const filteredFlow = computed(() =>
 
 const activeStep = computed(() => Math.max(filteredFlow.value.length - 1, 0));
 
-function renderNodeName(item: FlowRecord) {
+function renderNodeName(item) {
   if (item.historyActivityType === 'endEvent') {
     return `在 [${item.createTime}] 完成流程`;
   }
   return `${item.assigneeName || '未指定'} 在 [${item.createTime}] 处理 [${item.historyActivityName || '未命名'}]`;
 }
 
-function visibleComments(comments: Array<Record<string, any>>, index: number) {
+function visibleComments(comments, index) {
   const addComments = comments.filter((c) => c.action === 'AddComment');
   if (expandedIndex.value === index) {
     return addComments;
@@ -111,12 +102,12 @@ function visibleComments(comments: Array<Record<string, any>>, index: number) {
   return addComments.slice(0, defaultCommentCount);
 }
 
-function formatComment(comment: Record<string, any>) {
+function formatComment(comment) {
   const label = commentMap[comment.type] || '审批意见';
   return `${label}：${comment.fullMessage ?? ''}`;
 }
 
-function toggleExpand(index: number) {
+function toggleExpand(index) {
   expandedIndex.value = expandedIndex.value === index ? null : index;
 }
 </script>

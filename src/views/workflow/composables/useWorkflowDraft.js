@@ -3,32 +3,28 @@ import { showToast } from 'vant';
 
 import { getDetail as getDraftDetail, submit as submitDraft } from '@/api/workflow/draft';
 
-interface DraftParams {
-  processDefId?: string;
-  taskId?: string;
-}
-
 export function useWorkflowDraft() {
   const saveDraftVisible = ref(false);
   const recoverDraftVisible = ref(false);
-  const draftPayload = ref<Record<string, any> | null>(null);
-  const recoverPayload = ref<Record<string, any> | null>(null);
+  const draftPayload = ref(null);
+  const recoverPayload = ref(null);
 
-  async function initDraft(params: DraftParams) {
+  async function initDraft(params = {}) {
     const response = await getDraftDetail({ ...params, platform: 'app' });
-    const data = (response as any).data ?? response;
+    const data = response?.data ?? response;
     if (data?.variables && Object.keys(data.variables).length > 0) {
       recoverPayload.value = data.variables;
       recoverDraftVisible.value = true;
-      return data.variables as Record<string, any>;
+      return data.variables;
     }
     return null;
   }
 
-  function openSaveDraft(params: { processDefId?: string; taskId?: string; formKey?: string; variables: Record<string, any> }) {
+  function openSaveDraft(params = {}) {
+    const { variables = {}, ...rest } = params;
     draftPayload.value = {
-      ...params,
-      variables: JSON.stringify(params.variables ?? {}),
+      ...rest,
+      variables: JSON.stringify(variables),
       platform: 'app',
     };
     saveDraftVisible.value = true;
@@ -63,5 +59,3 @@ export function useWorkflowDraft() {
     recoverPayload,
   };
 }
-
-export type UseWorkflowDraftReturn = ReturnType<typeof useWorkflowDraft>;

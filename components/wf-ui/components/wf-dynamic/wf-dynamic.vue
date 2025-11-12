@@ -40,7 +40,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref, watch } from 'vue';
 
 import WfForm from '../wf-form/wf-form.vue';
@@ -56,7 +56,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'change', 'label-change']);
 
-const items = ref<Record<string, any>[]>([]);
+const items = ref([]);
 
 watch(
   () => props.modelValue,
@@ -89,7 +89,7 @@ const canAdd = computed(() => props.column?.children?.addBtn !== false && !props
 const canRemove = computed(() => props.column?.children?.delBtn !== false && !props.disabled && !props.column?.detail);
 
 function createEmptyRow() {
-  const row = {} as Record<string, any>;
+  const row = {};
   childColumns.value.forEach((column) => {
     if (!column?.prop) return;
     if (column.value !== undefined) {
@@ -101,7 +101,7 @@ function createEmptyRow() {
   return row;
 }
 
-function resolveChildOption(index: number) {
+function resolveChildOption(index) {
   const option = deepClone(props.column?.children || {});
   option.column = childColumns.value.map((col) => ({ ...col }));
   option.menuBtn = false;
@@ -114,13 +114,13 @@ function resolveChildOption(index: number) {
   return option;
 }
 
-function updateRow(index: number, value: Record<string, any>) {
+function updateRow(index, value) {
   const list = deepClone(items.value);
   list[index] = deepClone(value);
   items.value = list;
 }
 
-function forwardLabelChange(index: number, payload: { prop: string; value: any }) {
+function forwardLabelChange(index, payload) {
   emit('label-change', { index, ...payload });
 }
 
@@ -130,13 +130,13 @@ function add() {
   items.value = list;
 }
 
-function remove(index: number) {
+function remove(index) {
   const list = deepClone(items.value);
   list.splice(index, 1);
   items.value = list;
 }
 
-function renderTitle(index: number) {
+function renderTitle(index) {
   const baseTitle = props.column?.children?.title || props.column?.label || '子表单';
   return `${baseTitle} ${index + 1}`;
 }

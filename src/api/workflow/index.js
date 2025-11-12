@@ -2,7 +2,7 @@ import * as realTaskApi from './task';
 import * as mockTaskApi from './mock';
 
 const runtimeEnv =
-  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_USE_WORKFLOW_MOCK) ??
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_USE_WORKFLOW_MOCK) ??
   (typeof process !== 'undefined' ? process.env.VITE_USE_WORKFLOW_MOCK : undefined);
 
 const enableMock = runtimeEnv === undefined ? true : runtimeEnv !== 'false';
@@ -22,4 +22,3 @@ export const terminateProcess = taskApi.terminateProcess;
 export const addMultiInstance = taskApi.addMultiInstance;
 export const withdrawTask = taskApi.withdrawTask;
 
-export type { ProcessFormResponse, TaskDetailResponse } from './task';

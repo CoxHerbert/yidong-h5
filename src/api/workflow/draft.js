@@ -2,11 +2,7 @@ import http from '@/http/api.js';
 
 const prefix = '/blade-workflow/app/draft';
 
-type Params = Record<string, any>;
-
-type Data = Record<string, any>;
-
-export function getDetail(params: Params) {
+export function getDetail(params = {}) {
   return http.request({
     url: `${prefix}/detail`,
     method: 'GET',
@@ -14,7 +10,7 @@ export function getDetail(params: Params) {
   });
 }
 
-export function submit(data: Data) {
+export function submit(data = {}) {
   return http.request({
     url: `${prefix}/submit`,
     method: 'POST',

@@ -9,13 +9,13 @@ export default defineConfig({
     vue(),
     Components({
       resolvers: [VantResolver({ importStyle: 'sass' })],
-      dts: 'src/types/components.d.ts',
+      dts: false,
     }),
   ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
-      pinia: path.resolve(__dirname, './src/stores/pinia-shim.ts'),
+      pinia: path.resolve(__dirname, './src/stores/pinia-shim.js'),
     },
   },
 });

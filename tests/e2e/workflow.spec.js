@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 
 const baseUrl = process.env.E2E_BASE_URL ?? 'http://localhost:5173';
 
-function encode(payload: Record<string, any>) {
+function encode(payload = {}) {
   return Buffer.from(JSON.stringify(payload)).toString('base64');
 }
 

@@ -28,21 +28,21 @@
   </van-popup>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, reactive, watch } from 'vue';
 
-const props = defineProps<{
-  modelValue: boolean;
-  type: string;
-  checkType: 'radio' | 'checkbox';
-  defaultChecked: string | string[] | null;
-}>();
+const props = defineProps({
+  modelValue: { type: Boolean, default: false },
+  type: { type: String, default: '' },
+  checkType: { type: String, default: 'radio' },
+  defaultChecked: { type: [String, Array], default: null },
+});
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel']);
 
 const visible = computed({
   get: () => props.modelValue,
-  set: (val: boolean) => emit('update:modelValue', val),
+  set: (val) => emit('update:modelValue', val),
 });
 
 const form = reactive({
@@ -85,8 +85,14 @@ const title = computed(() => {
 });
 
 function handleConfirm() {
-  const idValue = props.checkType === 'checkbox' ? form.id.split(',').map((item) => item.trim()).filter(Boolean) : form.id.trim();
-  const nameValue = props.checkType === 'checkbox' ? form.name.split(',').map((item) => item.trim()).filter(Boolean) : form.name.trim();
+  const idValue =
+    props.checkType === 'checkbox'
+      ? form.id.split(',').map((item) => item.trim()).filter(Boolean)
+      : form.id.trim();
+  const nameValue =
+    props.checkType === 'checkbox'
+      ? form.name.split(',').map((item) => item.trim()).filter(Boolean)
+      : form.name.trim();
   emit('confirm', { id: idValue, name: nameValue });
   visible.value = false;
 }

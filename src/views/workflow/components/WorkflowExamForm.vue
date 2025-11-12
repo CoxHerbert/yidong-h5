@@ -42,29 +42,22 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { reactive, ref, watch } from 'vue';
-import type { UploaderFileListItem } from 'vant';
 
-interface ProcessInfo {
-  hideComment?: boolean;
-  hideAttachment?: boolean;
-  hideCopy?: boolean;
-  hideExamine?: boolean;
-  copyUser?: string | string[];
-  copyUserName?: string | string[];
-}
-
-const props = defineProps<{ process: ProcessInfo | null; comment?: string }>();
+const props = defineProps({
+  process: { type: Object, default: null },
+  comment: { type: String, default: '' },
+});
 const emit = defineEmits(['user-select', 'update:comment']);
 
 const examineForm = reactive({
   comment: props.comment || '',
-  copyUser: undefined as string | string[] | undefined,
-  $copyUser: undefined as string | string[] | undefined,
-  assignee: undefined as string | string[] | undefined,
-  $assignee: undefined as string | string[] | undefined,
-  attachment: [] as { name: string; url?: string }[],
+  copyUser: undefined,
+  $copyUser: undefined,
+  assignee: undefined,
+  $assignee: undefined,
+  attachment: [],
 });
 
 const state = reactive({
@@ -74,7 +67,7 @@ const state = reactive({
   hideExamine: false,
 });
 
-const fileList = ref<UploaderFileListItem[]>([]);
+const fileList = ref([]);
 
 watch(
   () => props.comment,
@@ -111,15 +104,19 @@ watch(
   { deep: true }
 );
 
-function emitComment(value: string) {
+function emitComment(value) {
   emit('update:comment', value);
 }
 
-function handleAfterRead(item: UploaderFileListItem | UploaderFileListItem[]) {
+function handleAfterRead(item) {
   const files = Array.isArray(item) ? item : [item];
   files.forEach((file) => {
     if (!file.url && file.content) {
-      file.url = typeof file.content === 'string' ? file.content : URL.createObjectURL(file.content as Blob);
+      if (typeof file.content === 'string') {
+        file.url = file.content;
+      } else if (typeof Blob !== 'undefined' && file.content instanceof Blob) {
+        file.url = URL.createObjectURL(file.content);
+      }
     }
   });
 }

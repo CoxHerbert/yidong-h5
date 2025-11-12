@@ -2,38 +2,23 @@ import http from '@/http/api.js';
 
 const prefix = '/blade-workflow/app/task';
 
-export interface ProcessFormResponse {
-  process: Record<string, any>;
-  startForm?: Record<string, any>;
-  form?: Record<string, any>;
-  appForm?: Record<string, any>;
-}
-
-export interface TaskDetailResponse {
-  process: Record<string, any>;
-  form: Record<string, any>;
-  flow: any[];
-  button: any[];
-  bpmnOption?: Record<string, any>;
-}
-
-export function getFormByProcessDefId(params: Record<string, any>) {
-  return http.request<{ data: ProcessFormResponse }>({
+export function getFormByProcessDefId(params = {}) {
+  return http.request({
     url: `${prefix}/getFormByProcessDefId`,
     method: 'GET',
     params,
   });
 }
 
-export function detail(params: Record<string, any>) {
-  return http.request<{ data: TaskDetailResponse }>({
+export function detail(params = {}) {
+  return http.request({
     url: `${prefix}/detail`,
     method: 'GET',
     params,
   });
 }
 
-export function startProcess(data: Record<string, any>) {
+export function startProcess(data = {}) {
   return http.request({
     url: `${prefix}/startProcess`,
     method: 'POST',
@@ -41,7 +26,7 @@ export function startProcess(data: Record<string, any>) {
   });
 }
 
-export function completeTask(data: Record<string, any>) {
+export function completeTask(data = {}) {
   return http.request({
     url: `${prefix}/completeTask`,
     method: 'POST',
@@ -49,7 +34,7 @@ export function completeTask(data: Record<string, any>) {
   });
 }
 
-export function transferTask(data: Record<string, any>) {
+export function transferTask(data = {}) {
   return http.request({
     url: `${prefix}/transferTask`,
     method: 'POST',
@@ -57,7 +42,7 @@ export function transferTask(data: Record<string, any>) {
   });
 }
 
-export function delegateTask(data: Record<string, any>) {
+export function delegateTask(data = {}) {
   return http.request({
     url: `${prefix}/delegateTask`,
     method: 'POST',
@@ -65,7 +50,7 @@ export function delegateTask(data: Record<string, any>) {
   });
 }
 
-export function claimTask(data: Record<string, any>) {
+export function claimTask(data = {}) {
   return http.request({
     url: `${prefix}/claimTask`,
     method: 'POST',
@@ -73,7 +58,7 @@ export function claimTask(data: Record<string, any>) {
   });
 }
 
-export function getBackNodes(params: Record<string, any>) {
+export function getBackNodes(params = {}) {
   return http.request({
     url: `${prefix}/getBackNodes`,
     method: 'GET',
@@ -81,7 +66,7 @@ export function getBackNodes(params: Record<string, any>) {
   });
 }
 
-export function rollbackTask(data: Record<string, any>) {
+export function rollbackTask(data = {}) {
   return http.request({
     url: `${prefix}/rollbackTask`,
     method: 'POST',
@@ -89,7 +74,7 @@ export function rollbackTask(data: Record<string, any>) {
   });
 }
 
-export function terminateProcess(data: Record<string, any>) {
+export function terminateProcess(data = {}) {
   return http.request({
     url: `${prefix}/terminateProcess`,
     method: 'POST',
@@ -97,7 +82,7 @@ export function terminateProcess(data: Record<string, any>) {
   });
 }
 
-export function addMultiInstance(data: Record<string, any>) {
+export function addMultiInstance(data = {}) {
   return http.request({
     url: `${prefix}/addMultiInstance`,
     method: 'POST',
@@ -105,7 +90,7 @@ export function addMultiInstance(data: Record<string, any>) {
   });
 }
 
-export function withdrawTask(data: Record<string, any>) {
+export function withdrawTask(data = {}) {
   return http.request({
     url: `${prefix}/withdrawTask`,
     method: 'POST',

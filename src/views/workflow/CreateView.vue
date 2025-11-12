@@ -17,21 +17,16 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref } from 'vue';
 
 import { list as fetchProcessList } from '@/api/workflow/process';
 
 import { useWorkflowForm } from './composables/useWorkflowForm';
 
-interface CategoryItem {
-  category: string;
-  processList: Array<Record<string, any>>;
-}
-
 const keyword = ref('');
-const categories = ref<CategoryItem[]>([]);
-const activeCategories = ref<string[]>([]);
+const categories = ref([]);
+const activeCategories = ref([]);
 const loading = ref(false);
 
 const workflow = useWorkflowForm();
@@ -42,7 +37,7 @@ async function fetchList() {
   loading.value = true;
   try {
     const response = await fetchProcessList({ processDefinitionName: keyword.value, platform: 'h5' });
-    const data = (response as any).data ?? response;
+    const data = response?.data ?? response;
     categories.value = data || [];
     activeCategories.value = categories.value.map((item) => item.category);
   } finally {
@@ -50,7 +45,7 @@ async function fetchList() {
   }
 }
 
-function startProcess(item: Record<string, any>) {
+function startProcess(item) {
   workflow.dynamicRoute(item, 'start');
 }
 </script>

@@ -49,7 +49,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onMounted, reactive, ref, watch } from 'vue';
 
 import WfForm from '@/components/wf-ui/components/wf-form/wf-form.vue';
@@ -59,19 +59,11 @@ import WorkflowUserSelector from './components/WorkflowUserSelector.vue';
 import { useWorkflowDraft } from './composables/useWorkflowDraft';
 import { useWorkflowForm } from './composables/useWorkflowForm';
 
-interface FormOption {
-  column?: any[];
-  group?: any[];
-  submitBtn?: boolean;
-  menuBtn?: boolean;
-  labelPosition?: string;
-}
-
-const form = reactive<Record<string, any>>({});
-const option = ref<FormOption | null>(null);
+const form = reactive({});
+const option = ref(null);
 const submitLoading = ref(false);
-const formRef = ref<InstanceType<typeof WfForm> | null>(null);
-const examFormRef = ref<InstanceType<typeof WorkflowExamForm> | null>(null);
+const formRef = ref(null);
+const examFormRef = ref(null);
 
 const workflow = useWorkflowForm();
 const draft = useWorkflowDraft();
@@ -90,16 +82,23 @@ const {
   navigateTo,
 } = workflow;
 
-const { saveDraftVisible, recoverDraftVisible, openSaveDraft, submitDraftRequest, confirmRecoverDraft, cancelRecoverDraft, initDraft } =
-  draft;
+const {
+  saveDraftVisible,
+  recoverDraftVisible,
+  openSaveDraft,
+  submitDraftRequest,
+  confirmRecoverDraft,
+  cancelRecoverDraft,
+  initDraft,
+} = draft;
 
 const showExamForm = ref(true);
 
 onMounted(() => {
   if (examFormRef.value) {
-    registerExamineForm(examFormRef.value as any);
+    registerExamineForm(examFormRef.value);
   }
-  const payload = workflow.extractRoutePayload<{ processId: string }>();
+  const payload = workflow.extractRoutePayload();
   if (payload?.processId) {
     loadForm(payload.processId);
   }
@@ -107,18 +106,18 @@ onMounted(() => {
 
 watch(examFormRef, (val) => {
   if (val) {
-    registerExamineForm(val as any);
+    registerExamineForm(val);
   }
 });
 
-async function loadForm(processDefId: string) {
+async function loadForm(processDefId) {
   const data = await loadStartForm(processDefId);
   if (!data) return;
   const optionConfig = parseOption(data.form || data.appForm);
   const startForm = Array.isArray(data.startForm) ? data.startForm : [];
   const columnFilter = workflow.filterAvueColumn(optionConfig.column || [], startForm);
-  const groups: any[] = [];
-  (optionConfig.group || []).forEach((group: any) => {
+  const groups = [];
+  (optionConfig.group || []).forEach((group) => {
     const groupFilter = workflow.filterAvueColumn(group.column || [], startForm);
     if (groupFilter.column.length > 0) {
       groups.push({ ...group, column: groupFilter.column });
@@ -136,8 +135,8 @@ async function loadForm(processDefId: string) {
   await initDraft({ processDefId });
 }
 
-function parseOption(payload: unknown) {
-  if (!payload) return {} as FormOption;
+function parseOption(payload) {
+  if (!payload) return {};
   if (typeof payload === 'string') {
     try {
       return JSON.parse(payload);
@@ -147,14 +146,14 @@ function parseOption(payload: unknown) {
         return eval('(' + payload + ')');
       } catch (err) {
         console.warn('[workflow] parse option failed', err);
-        return {} as FormOption;
+        return {};
       }
     }
   }
-  return payload as FormOption;
+  return payload;
 }
 
-async function handleSubmit(submitForm: Record<string, any>) {
+async function handleSubmit(submitForm) {
   if (!process.value) return;
   submitLoading.value = true;
   try {
@@ -168,7 +167,7 @@ async function handleSubmit(submitForm: Record<string, any>) {
   }
 }
 
-function handleUserSelect(payload: { type: string; checkType: 'radio' | 'checkbox' }) {
+function handleUserSelect(payload) {
   openUserSelector(payload);
 }
 

@@ -1,76 +1,8 @@
-import type { ProcessFormResponse, TaskDetailResponse } from './task';
-
-type Params = Record<string, any>;
-
-type CommentType =
-  | 'comment'
-  | 'transferComment'
-  | 'delegateComment'
-  | 'rollbackComment'
-  | 'terminateComment'
-  | 'addMultiInstanceComment'
-  | 'withdrawComment';
-
-interface FlowComment {
-  type: CommentType;
-  fullMessage: string;
-  action: 'AddComment';
-  time: string;
-}
-
-interface FlowRecord {
-  historyActivityType: string;
-  historyActivityName: string;
-  assigneeName: string;
-  createTime: string;
-  endTime?: string;
-  historyActivityDurationTime?: string;
-  comments: FlowComment[];
-  attachments?: Array<{ name: string; url: string }>;
-}
-
-interface SummaryFormItem {
-  taskName: string;
-  taskKey: string;
-  content: string;
-  appContent?: string;
-}
-
-interface ProcessInstance {
-  id: string;
-  processDefinitionId: string;
-  processDefinitionName: string;
-  formKey: string;
-  startUsername: string;
-  startTime: string;
-  status: 'todo' | 'done' | 'delay';
-  processIsFinished?: string;
-  processInstanceId: string;
-  taskId: string;
-  taskName: string;
-  copyUser?: string | string[];
-  copyUserName?: string | string[];
-  variables: Record<string, any>;
-  flow: FlowRecord[];
-  summary: SummaryFormItem[];
-  buttonList: Array<{ buttonKey: string; name: string }>;
-  isOwner: boolean;
-  isReturnable: boolean;
-  isMultiInstance: boolean;
-  xml?: string;
-}
-
-interface StartFormPermission {
-  id: string;
-  readable: boolean;
-  writable: boolean;
-}
-
 const definitionId = 'mock-expense-process';
 const processName = '费用报销流程（模拟）';
 const formKey = 'mock_expense_form';
 
-const buttonCatalog: Array<{ buttonKey: string; name: string }> = [
+const buttonCatalog = [
   { buttonKey: 'wf_pass', name: '通过' },
   { buttonKey: 'wf_reject', name: '驳回' },
   { buttonKey: 'wf_transfer', name: '转办' },
@@ -83,7 +15,7 @@ const buttonCatalog: Array<{ buttonKey: string; name: string }> = [
 let processSequence = 1;
 let taskSequence = 1;
 
-const instances = new Map<string, ProcessInstance>();
+const instances = new Map();
 
 const baseFormOption = {
   menuBtn: false,
@@ -172,7 +104,7 @@ const baseFormOption = {
   ],
 };
 
-const startFormPermissions: StartFormPermission[] = [
+const startFormPermissions = [
   { id: 'title', readable: true, writable: true },
   { id: 'applicant', readable: true, writable: false },
   { id: 'department', readable: true, writable: true },
@@ -191,20 +123,20 @@ function cloneOption() {
 }
 
 function formatDate(date = new Date()) {
-  const pad = (num: number) => `${num}`.padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(
-    date.getMinutes()
-  )}:${pad(date.getSeconds())}`;
+  const pad = (num) => `${num}`.padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
 
-function resolveTaskForm(instance: ProcessInstance) {
+function resolveTaskForm(instance) {
   if (instance.status !== 'todo') {
     return startFormPermissions.map((item) => ({ ...item, writable: false }));
   }
   return startFormPermissions.map((item) => ({ ...item }));
 }
 
-function ensureInstance(taskId?: string) {
+function ensureInstance(taskId) {
   if (!taskId) return null;
   for (const instance of instances.values()) {
     if (instance.taskId === taskId) {
@@ -214,7 +146,7 @@ function ensureInstance(taskId?: string) {
   return null;
 }
 
-function createInitialVariables(payload: Record<string, any>) {
+function createInitialVariables(payload = {}) {
   return {
     title: payload.title || '差旅报销',
     applicant: payload.applicant || '演示用户',
@@ -230,16 +162,17 @@ function createInitialVariables(payload: Record<string, any>) {
           ],
     attachments: payload.attachments || [],
     description: payload.description || '请审批该报销申请。',
-    serialNumber: payload.serialNumber || `MOCK-${new Date().getFullYear()}-${String(processSequence).padStart(4, '0')}`,
+    serialNumber:
+      payload.serialNumber || `MOCK-${new Date().getFullYear()}-${String(processSequence).padStart(4, '0')}`,
   };
 }
 
-function createInstance(payload: Record<string, any>): ProcessInstance {
+function createInstance(payload = {}) {
   const processInstanceId = `pi-${processSequence++}`;
   const taskId = `task-${taskSequence++}`;
   const now = formatDate();
   const variables = createInitialVariables(payload);
-  const flow: FlowRecord[] = [
+  const flow = [
     {
       historyActivityType: 'startEvent',
       historyActivityName: '发起申请',
@@ -248,7 +181,7 @@ function createInstance(payload: Record<string, any>): ProcessInstance {
       comments: [],
     },
   ];
-  const summary: SummaryFormItem[] = [
+  const summary = [
     {
       taskName: '发起申请',
       taskKey: 'start',
@@ -281,11 +214,11 @@ function createInstance(payload: Record<string, any>): ProcessInstance {
   };
 }
 
-function appendFlow(instance: ProcessInstance, record: FlowRecord) {
+function appendFlow(instance, record) {
   instance.flow.push(record);
 }
 
-function createComment(comment: string | undefined, type: CommentType): FlowComment[] {
+function createComment(comment, type) {
   if (!comment) return [];
   return [
     {
@@ -297,8 +230,8 @@ function createComment(comment: string | undefined, type: CommentType): FlowComm
   ];
 }
 
-export function getFormByProcessDefId(): Promise<{ data: ProcessFormResponse }> {
-  const payload: ProcessFormResponse = {
+export function getFormByProcessDefId() {
+  const payload = {
     process: {
       id: definitionId,
       name: processName,
@@ -311,11 +244,11 @@ export function getFormByProcessDefId(): Promise<{ data: ProcessFormResponse }> 
     startForm: startFormPermissions,
     form: JSON.stringify(cloneOption()),
     appForm: JSON.stringify(cloneOption()),
-  } as ProcessFormResponse;
+  };
   return Promise.resolve({ data: payload });
 }
 
-export function detail(params: Params): Promise<{ data: TaskDetailResponse }> {
+export function detail(params = {}) {
   const instance = ensureInstance(params.taskId);
   if (!instance) {
     const fallback = createInstance({});
@@ -323,7 +256,7 @@ export function detail(params: Params): Promise<{ data: TaskDetailResponse }> {
     return detail({ taskId: fallback.taskId });
   }
 
-  const response: TaskDetailResponse = {
+  const response = {
     process: {
       processDefinitionId: instance.processDefinitionId,
       processDefinitionName: instance.processDefinitionName,
@@ -356,13 +289,13 @@ export function detail(params: Params): Promise<{ data: TaskDetailResponse }> {
   return Promise.resolve({ data: response });
 }
 
-export function startProcess(data: Record<string, any>): Promise<{ success: boolean; taskId: string }> {
+export function startProcess(data = {}) {
   const instance = createInstance(data);
   instances.set(instance.processInstanceId, instance);
   return Promise.resolve({ success: true, taskId: instance.taskId });
 }
 
-export function completeTask(data: Record<string, any>): Promise<{ success: boolean }> {
+export function completeTask(data = {}) {
   const instance = ensureInstance(data.taskId);
   if (!instance) {
     return Promise.reject(new Error('任务不存在'));
@@ -400,7 +333,7 @@ export function completeTask(data: Record<string, any>): Promise<{ success: bool
   return Promise.resolve({ success: true });
 }
 
-export function transferTask(data: Record<string, any>): Promise<{ success: boolean }> {
+export function transferTask(data = {}) {
   const instance = ensureInstance(data.taskId);
   if (!instance) {
     return Promise.reject(new Error('任务不存在'));
@@ -417,7 +350,7 @@ export function transferTask(data: Record<string, any>): Promise<{ success: bool
   return Promise.resolve({ success: true });
 }
 
-export function delegateTask(data: Record<string, any>): Promise<{ success: boolean }> {
+export function delegateTask(data = {}) {
   const instance = ensureInstance(data.taskId);
   if (!instance) {
     return Promise.reject(new Error('任务不存在'));
@@ -434,11 +367,11 @@ export function delegateTask(data: Record<string, any>): Promise<{ success: bool
   return Promise.resolve({ success: true });
 }
 
-export function claimTask(): Promise<{ success: boolean }> {
+export function claimTask() {
   return Promise.resolve({ success: true });
 }
 
-export function getBackNodes(): Promise<{ data: Array<{ nodeId: string; nodeName: string }> }> {
+export function getBackNodes() {
   return Promise.resolve({
     data: [
       { nodeId: 'startNode', nodeName: '发起人节点' },
@@ -447,7 +380,7 @@ export function getBackNodes(): Promise<{ data: Array<{ nodeId: string; nodeName
   });
 }
 
-export function rollbackTask(data: Record<string, any>): Promise<{ success: boolean }> {
+export function rollbackTask(data = {}) {
   const instance = ensureInstance(data.taskId);
   if (!instance) {
     return Promise.reject(new Error('任务不存在'));
@@ -465,7 +398,7 @@ export function rollbackTask(data: Record<string, any>): Promise<{ success: bool
   return Promise.resolve({ success: true });
 }
 
-export function terminateProcess(data: Record<string, any>): Promise<{ success: boolean }> {
+export function terminateProcess(data = {}) {
   const instance = ensureInstance(data.taskId);
   if (!instance) {
     return Promise.reject(new Error('任务不存在'));
@@ -482,7 +415,7 @@ export function terminateProcess(data: Record<string, any>): Promise<{ success: 
   return Promise.resolve({ success: true });
 }
 
-export function addMultiInstance(data: Record<string, any>): Promise<{ success: boolean }> {
+export function addMultiInstance(data = {}) {
   const instance = ensureInstance(data.taskId);
   if (!instance) {
     return Promise.reject(new Error('任务不存在'));
@@ -498,7 +431,7 @@ export function addMultiInstance(data: Record<string, any>): Promise<{ success: 
   return Promise.resolve({ success: true });
 }
 
-export function withdrawTask(data: Record<string, any>): Promise<{ success: boolean }> {
+export function withdrawTask(data = {}) {
   const instance = ensureInstance(data.taskId);
   if (!instance) {
     return Promise.reject(new Error('任务不存在'));

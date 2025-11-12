@@ -127,7 +127,7 @@ describe('WfForm', () => {
                 prop: 'item',
                 label: '事项',
                 type: 'input',
-                change: ({ value, index }: any) => dynamicChange({ value, index }),
+                change: ({ value, index }) => dynamicChange({ value, index }),
               },
               { prop: 'cost', label: '金额', type: 'number' },
             ],
@@ -143,7 +143,8 @@ describe('WfForm', () => {
 
     const addBtn = wrapper.findAll('button').find((btn) => btn.text() === '新增');
     expect(addBtn).toBeTruthy();
-    await addBtn!.trigger('click');
+    if (!addBtn) throw new Error('missing add button');
+    await addBtn.trigger('click');
 
     expect(wrapper.findAll('.wf-dynamic__item').length).toBe(1);
 
@@ -154,7 +155,8 @@ describe('WfForm', () => {
 
     const removeBtn = wrapper.findAll('button').find((btn) => btn.text() === '移除');
     expect(removeBtn).toBeTruthy();
-    await removeBtn!.trigger('click');
+    if (!removeBtn) throw new Error('missing remove button');
+    await removeBtn.trigger('click');
     expect(wrapper.findAll('.wf-dynamic__item').length).toBe(0);
 
     const updates = wrapper.emitted('update:modelValue');

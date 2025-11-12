@@ -2,6 +2,6 @@
   <router-view />
 </template>
 
-<script setup lang="ts">
+<script setup>
 // Workflow layout placeholder for nested routes
 </script>

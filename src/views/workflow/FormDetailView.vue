@@ -82,7 +82,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onMounted, reactive, ref, watch } from 'vue';
 
 import WfForm from '@/components/wf-ui/components/wf-form/wf-form.vue';
@@ -95,21 +95,14 @@ import WorkflowUserSelector from './components/WorkflowUserSelector.vue';
 import { useWorkflowDraft } from './composables/useWorkflowDraft';
 import { useWorkflowForm } from './composables/useWorkflowForm';
 
-interface FormOption {
-  column?: any[];
-  group?: any[];
-  menuBtn?: boolean;
-  detail?: boolean;
-}
-
 const activeTab = ref('info');
-const form = reactive<Record<string, any>>({});
-const option = ref<FormOption | null>(null);
-const summaryOption = ref<FormOption | null>(null);
-const vars = ref<string[]>([]);
+const form = reactive({});
+const option = ref(null);
+const summaryOption = ref(null);
+const vars = ref([]);
 const submitLoading = ref(false);
-const examFormRef = ref<InstanceType<typeof WorkflowExamForm> | null>(null);
-const bpmnPreview = ref<{ processInsId?: string; taskId?: string; token?: string } | null>(null);
+const examFormRef = ref(null);
+const bpmnPreview = ref(null);
 
 const workflow = useWorkflowForm();
 const draft = useWorkflowDraft();
@@ -140,6 +133,7 @@ const {
   submitDraftRequest,
   confirmRecoverDraft,
   cancelRecoverDraft,
+  initDraft,
 } = draft;
 
 function resetOptionState() {
@@ -150,9 +144,9 @@ function resetOptionState() {
 
 onMounted(() => {
   if (examFormRef.value) {
-    workflow.registerExamineForm(examFormRef.value as any);
+    workflow.registerExamineForm(examFormRef.value);
   }
-  const payload = workflow.extractRoutePayload<{ taskId: string; processInsId?: string }>();
+  const payload = workflow.extractRoutePayload();
   if (payload?.taskId && payload?.processInsId) {
     loadDetail(payload.taskId, payload.processInsId);
   }
@@ -160,53 +154,53 @@ onMounted(() => {
 
 watch(examFormRef, (val) => {
   if (val) {
-    workflow.registerExamineForm(val as any);
+    workflow.registerExamineForm(val);
   }
 });
 
-async function loadDetail(taskId: string, processInsId?: string) {
+async function loadDetail(taskId, processInsId) {
   resetOptionState();
   const data = await loadTaskDetail(taskId, processInsId);
-  const processData = data.process || {};
+  const processData = data?.process || {};
   const variables = { ...(processData.variables || {}) };
   Object.assign(form, variables);
   if (processData.status === 'todo') {
-    await draft.initDraft({ taskId });
+    await initDraft({ taskId });
   }
   if (processData.taskId) {
     bpmnPreview.value = {
       taskId: processData.taskId,
       processInsId: processData.processInstanceId,
-      token: localStorage.getItem('accessToken') || '',
+      token: typeof localStorage !== 'undefined' ? localStorage.getItem('accessToken') || '' : '',
     };
   }
-  resolveFormOptions(data.form, processData.status);
+  resolveFormOptions(data?.form, processData.status);
 }
 
-function parseOption(option: unknown) {
-  if (!option) return {};
-  if (typeof option === 'string') {
+function parseOption(optionPayload) {
+  if (!optionPayload) return {};
+  if (typeof optionPayload === 'string') {
     try {
-      return JSON.parse(option);
+      return JSON.parse(optionPayload);
     } catch (error) {
       try {
         // eslint-disable-next-line no-eval
-        return eval('(' + option + ')');
+        return eval('(' + optionPayload + ')');
       } catch (err) {
         console.warn('[workflow] parse option failed', err);
         return {};
       }
     }
   }
-  return option as Record<string, any>;
+  return optionPayload || {};
 }
 
-function resolveFormOptions(formData: any, status: string) {
+function resolveFormOptions(formData, status) {
   if (!formData) return;
   const { allForm, allAppForm, taskForm, formList } = formData;
   if (Array.isArray(formList) && formList.length > 0) {
-    const summary = { menuBtn: false, detail: true, labelPosition: 'top', group: [] as any[] };
-    formList.forEach((item: any) => {
+    const summary = { menuBtn: false, detail: true, labelPosition: 'top', group: [] };
+    formList.forEach((item) => {
       const optionConfig = parseOption(item.content || item.appContent);
       const { option: resolved } = handleResolveOption(optionConfig, taskForm, 'done');
       summary.group.push({
@@ -232,10 +226,10 @@ function resolveFormOptions(formData: any, status: string) {
   }
 }
 
-function handleResolveOption(optionConfig: Record<string, any>, taskForm: any[], status: string) {
+function handleResolveOption(optionConfig, taskForm = [], status) {
   const result = { ...(optionConfig || {}) };
-  let collectedVars: string[] = [];
-  const stripDefault = (column: any) => {
+  let collectedVars = [];
+  const stripDefault = (column) => {
     if (!column) return;
     delete column.value;
     if (column.type === 'dynamic' && column.children?.column) {
@@ -246,13 +240,13 @@ function handleResolveOption(optionConfig: Record<string, any>, taskForm: any[],
   if (status !== 'todo') {
     result.detail = true;
     (result.column || []).forEach(stripDefault);
-    (result.group || []).forEach((group: any) => group.column?.forEach(stripDefault));
+    (result.group || []).forEach((group) => group.column?.forEach(stripDefault));
   } else {
     const columnFilter = workflow.filterAvueColumn(result.column || [], taskForm);
     result.column = columnFilter.column;
     collectedVars = columnFilter.vars || [];
-    const groups: any[] = [];
-    (result.group || []).forEach((group: any) => {
+    const groups = [];
+    (result.group || []).forEach((group) => {
       const groupFilter = workflow.filterAvueColumn(group.column || [], taskForm);
       if (groupFilter.column.length > 0) {
         groups.push({ ...group, column: groupFilter.column });
@@ -264,10 +258,10 @@ function handleResolveOption(optionConfig: Record<string, any>, taskForm: any[],
   return { option: result, vars: collectedVars };
 }
 
-async function handleExamine(pass: boolean) {
+async function handleExamine(pass) {
   submitLoading.value = true;
   try {
-    const variables: Record<string, any> = {};
+    const variables = {};
     vars.value.forEach((key) => {
       if (form[key] !== undefined && form[key] !== null && form[key] !== '') {
         variables[key] = form[key];
@@ -289,7 +283,7 @@ async function handleExamine(pass: boolean) {
   }
 }
 
-function handleUserSelect(payload: { type: string; checkType: 'radio' | 'checkbox' }) {
+function handleUserSelect(payload) {
   openUserSelector(payload);
 }
 
@@ -297,7 +291,7 @@ function handleUserSelectorCancel() {
   userSelectorVisible.value = false;
 }
 
-async function handleRollback(nodeId: string) {
+async function handleRollback(nodeId) {
   await rollbackTaskAction(nodeId);
 }
 
