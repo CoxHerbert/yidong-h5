@@ -1,5 +1,5 @@
 <template>
-    <view class="wf-form-item">
+    <div class="wf-form-item">
         <u-form-item
             :label="column.label ? column.label + '：' : ''"
             :prop="column.prop"
@@ -190,7 +190,7 @@
             </template>
             <WfFeasibility v-if="column.component === 'wf-feasibility'" v-model="text"> </WfFeasibility>
         </u-form-item>
-    </view>
+    </div>
 </template>
 
 <script>

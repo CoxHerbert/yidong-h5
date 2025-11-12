@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-select">
+	<div class="wf-select">
 		<u-input v-model="textLabel" type="select" :placeholder="getPlaceholder(column, column.type)" @click="onClick" />
 		<u-select
 			v-model="show"
@@ -11,7 +11,7 @@
 			:title="column.label"
 			@confirm="handleSubmit"
 		></u-select>
-	</view>
+	</div>
 </template>
 
 <script>
@@ -45,11 +45,11 @@ export default {
 				text.push(d['value'])
 				textLabel.push(d['label'] || '')
 			})
-			this.$set(this, 'text', text.join(','))
-			this.$set(this, 'textLabel', textLabel.join(','))
-			this.$emit('label-change', textLabel.join(','))
-		}
-	}
+                        this.text = text.join(',')
+                        this.textLabel = textLabel.join(',')
+                        this.$emit('label-change', textLabel.join(','))
+                }
+        }
 }
 </script>
 

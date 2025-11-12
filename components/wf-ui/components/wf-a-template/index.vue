@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-xxx"></view>
+	<div class="wf-xxx"></div>
 </template>
 
 <script>

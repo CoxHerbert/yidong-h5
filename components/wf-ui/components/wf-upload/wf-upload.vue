@@ -1,7 +1,7 @@
 <template>
-	<view class="wf-upload">
+	<div class="wf-upload">
 		<upload :file-list="fileList" :limit="limit" :disabled="disabled" @remove="onRemove" @choose="onChoose"></upload>
-	</view>
+	</div>
 </template>
 
 <script>

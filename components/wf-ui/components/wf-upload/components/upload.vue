@@ -1,6 +1,6 @@
 <template>
-    <view class="wf-upload">
-        <view class="wf-upload-button" v-if="!disabled && fileList.length < limit">
+    <div class="wf-upload">
+        <div class="wf-upload-button" v-if="!disabled && fileList.length < limit">
             <button
                 :style="{ 'background-color': '#007aff', color: '#fff' }"
                 type="default"
@@ -9,9 +9,9 @@
             >
                 点击上传
             </button>
-        </view>
-        <view class="wf-upload-file">
-            <view v-for="(item, index) in fileList" :key="index" class="wf-upload-file__item">
+        </div>
+        <div class="wf-upload-file">
+            <div v-for="(item, index) in fileList" :key="index" class="wf-upload-file__item">
                 <img
                     v-if="isImageUrl(item.url)"
                     :src="item.url"
@@ -22,12 +22,12 @@
                 <span v-else class="wf-upload-file__item--name" @click="handleAttachments(item)">{{
                     item.name || item.url
                 }}</span>
-                <view v-if="!disabled" class="wf-upload-file__item--icon" @click="onRemove(index)"
+                <div v-if="!disabled" class="wf-upload-file__item--icon" @click="onRemove(index)"
                     ><u-icon name="close"></u-icon
-                ></view>
-            </view>
-        </view>
-    </view>
+                ></div>
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>

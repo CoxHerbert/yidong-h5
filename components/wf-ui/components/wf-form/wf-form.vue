@@ -1,5 +1,5 @@
 <template>
-    <view class="wf-form">
+    <div class="wf-form">
         <u-form class="wf-form-content" ref="form" :model="form" :error-type="['border-bottom', 'toast']">
             <template v-if="option.column && option.column.length > 0">
                 <template v-for="(item, index) in option.column">
@@ -76,7 +76,7 @@
                 </u-collapse>
             </template>
         </u-form>
-        <view
+        <div
             v-if="
                 ((option.column && option.column.length > 0) || (option.group && option.group.length > 0)) &&
                 menuBtn.show
@@ -91,8 +91,8 @@
             </u-button>
             <slot name="menu"></slot>
             <!-- <u-button v-if="menuBtn.enptyBtn" :loading="allDisabled"  type="info" size="medium" @click="clear">{{ menuBtn.emptyText }}</u-button> -->
-        </view>
-    </view>
+        </div>
+    </div>
 </template>
 
 <script>

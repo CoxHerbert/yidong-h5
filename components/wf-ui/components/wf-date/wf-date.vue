@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-date">
+	<div class="wf-date">
 		<block v-if="[1, 2, 3, 4].includes(type)">
 			<div class="wf-date__field" @click="handleShowSelect">
 				<u-field
@@ -28,7 +28,7 @@
 		</block>
 
 		<block v-if="[5, 6].includes(type)">
-			<view class="wf-date-time">
+			<div class="wf-date-time">
 				<div class="wf-date-time__start" @click="handleShowSelect('initStartDate')">
 					<u-field
 						v-model="initStartDate"
@@ -59,7 +59,7 @@
 						></u-field>
 					</div>
 				</block>
-			</view>
+			</div>
 			<u-picker
 				v-model="showTime"
 				mode="time"
@@ -72,7 +72,7 @@
 				@cancel="onClear"
 			></u-picker>
 		</block>
-	</view>
+	</div>
 </template>
 
 <script>

@@ -1,14 +1,14 @@
 <template>
 	<u-popup safe-area-inset-bottom border-radius="25" closeable mode="bottom" v-model="show">
 		<div class="container">
-			<view class="title">签名</view>
-			<view class="handCenter" :style="getStyle">
+			<div class="title">签名</div>
+			<div class="handCenter" :style="getStyle">
 				<canvas v-if="show" class="hand-writing" disable-scroll @touchstart="uploadScaleStart" @touchmove="uploadScaleMove" @touchend="uploadScaleEnd" :id="canvasId" :canvas-id="canvasId"></canvas>
-			</view>
-			<view class="buttons">
+			</div>
+			<div class="buttons">
 				<span class="button button_rewrite" @click="rewrite">重签</span>
 				<span class="button button_submit" @click="submit">提交</span>
-			</view>
+			</div>
 		</div>
 		<u-toast ref="uToast" />
 	</u-popup>

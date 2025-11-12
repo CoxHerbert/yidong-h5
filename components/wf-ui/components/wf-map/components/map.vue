@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-map">
+	<div class="wf-map">
 		<map
 			:id="mapId"
 			style="height: 50vh; width: 750rpx;"
@@ -20,9 +20,9 @@
 		<image class="cover-image" :src="require('../images/location.png')"></image>
 		<image :src="require('../images/current.png')" class="current-img" @tap="currentLocation"></image>
 		<!-- #endif -->
-		<view class="search"><u-search v-model="searchValue" :show-action="false" @change="onSearch"></u-search></view>
-		<view class="list">
-			<view class="list-item" v-for="(item, index) in list" :key="index" @click="onSelect(index)">
+		<div class="search"><u-search v-model="searchValue" :show-action="false" @change="onSearch"></u-search></div>
+		<div class="list">
+			<div class="list-item" v-for="(item, index) in list" :key="index" @click="onSelect(index)">
 				<label class="l">
 					<p class="list-item__title">{{ item.title }}</p>
 					<p class="list-item__address">{{ item.address }}</p>
@@ -30,9 +30,9 @@
 				<radio-group class="r">
 					<radio style="transform:scale(0.7)" :value="item.id" :checked="current == index" color="rgb(0, 122, 255)"></radio>
 				</radio-group>
-			</view>
-		</view>
-		<view class="button safe-area-inset-bottom">
+			</div>
+		</div>
+		<div class="button safe-area-inset-bottom">
 			<u-button <!-- #ifdef MP -->
 				:custom-style="{ width: '320rpx'}"
 				<!-- #endif -->
@@ -43,8 +43,8 @@
 				<!-- #endif -->
 				type="error" size="medium" @click="onCancel" > 清空
 			</u-button>
-		</view>
-	</view>
+		</div>
+	</div>
 </template>
 
 <script>

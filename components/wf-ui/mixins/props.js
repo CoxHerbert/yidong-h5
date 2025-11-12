@@ -15,16 +15,21 @@ export default {
                 this.handleChange(val);
             },
         },
-        value: {
-            handler(val) {
+        modelValue: {
+            handler() {
                 this.initVal();
             },
             immediate: true,
         },
     },
     props: {
-        value: undefined,
-        column: {},
+        modelValue: {
+            default: undefined,
+        },
+        column: {
+            type: Object,
+            default: () => ({}),
+        },
         disabled: Boolean,
         dic: {
             type: Array,
@@ -80,10 +85,10 @@ export default {
                     if (!this.validateNull(list)) arr = list;
                     if (label) textLabel.push(label);
                 });
-                this.$set(this, 'textLabel', textLabel.join('/'));
+                this.textLabel = textLabel.join('/');
                 this.$emit('label-change', this.stringMode ? textLabel.join('/') : textLabel);
             } else {
-                this.$set(this, 'textLabel', '');
+                this.textLabel = '';
                 this.$emit('label-change', '');
             }
         },

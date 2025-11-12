@@ -1,4 +1,6 @@
+import 'vant/lib/index.css';
 import { validateNull, validData, deepClone, findObject } from './util/index.js';
+import vantComponents from './vant/index.js';
 
 const prototypes = {
     validateNull,
@@ -9,13 +11,17 @@ const prototypes = {
 };
 
 export default {
-    install(Vue) {
-        // 注册全局方法
-        Object.keys(prototypes).forEach((key) => {
-            Vue.prototype[key] = prototypes[key];
-            uni.$u[key] = prototypes[key];
+    install(app) {
+        Object.entries(prototypes).forEach(([key, value]) => {
+            app.config.globalProperties[key] = value;
+        });
+
+        vantComponents.forEach((component) => {
+            if (component && component.name) {
+                app.component(component.name, component);
+            }
         });
     },
     author: 'SSC',
-    version: '1.4.0',
+    version: '2.0.0',
 };

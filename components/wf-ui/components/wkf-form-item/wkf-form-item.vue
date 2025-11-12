@@ -1,5 +1,5 @@
 <template>
-    <view class="wf-form-item">
+    <div class="wf-form-item">
         <u-form-item
             :label="column.label ? column.label + '：' : ''"
             :prop="column.prop"
@@ -125,7 +125,7 @@
             ></component>
             <!-- #endif -->
         </u-form-item>
-    </view>
+    </div>
 </template>
 
 <script>
@@ -140,11 +140,9 @@ export default {
                 return {};
             },
         },
-        value: {
+        modelValue: {
             type: [Object, Array, String, Number],
-            default: () => {
-                return {};
-            },
+            default: undefined,
         },
         disabled: {
             type: Boolean,
@@ -160,26 +158,22 @@ export default {
         labelWidth: Number,
         dynamicIndex: undefined,
     },
+    emits: ['update:modelValue', 'change', 'label-change'],
     watch: {
         text: {
             handler(val) {
                 if (this.init || !this.validateNull(val)) {
                     this.init = true;
-                    this.$emit('input', val);
+                    this.$emit('update:modelValue', val);
                     this.$emit('change', val);
                 } else {
                     this.init = true;
                 }
             },
         },
-        value: {
+        modelValue: {
             handler(val) {
-                // #ifdef MP
-                this.text = val || mpFormInitVal(this.column);
-                // #endif
-                // #ifndef MP
-                this.text = val;
-                // #endif
+                this.text = val !== undefined ? val : mpFormInitVal(this.column);
             },
             immediate: true,
         },

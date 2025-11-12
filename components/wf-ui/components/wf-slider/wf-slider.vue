@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-slider">
+	<div class="wf-slider">
 		<u-slider
 			:value="startValue"
 			:endValue="endValue"
@@ -8,7 +8,7 @@
 			@change="onChange"
 		></u-slider>
 		<span class="wf-slider__text">{{ showText }}</span>
-	</view>
+	</div>
 </template>
 
 <script>

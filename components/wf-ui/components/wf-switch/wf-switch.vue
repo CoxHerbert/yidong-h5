@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-switch">
+	<div class="wf-switch">
 		<u-switch
 			v-model="checked"
 			:active-value="activeValue"
@@ -9,7 +9,7 @@
 			:disabled="disabled"
 			@change="onChange"
 		></u-switch>
-	</view>
+	</div>
 </template>
 
 <script>
