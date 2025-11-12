@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-sign">
+	<div class="wf-sign">
 		<image
 			v-if="text"
 			:src="text"
@@ -20,7 +20,7 @@
 			v-if="!disabled"
 			ref="signature"
 		></signature-pad>
-	</view>
+	</div>
 </template>
 
 <script>

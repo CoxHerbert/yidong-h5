@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-number">
+	<div class="wf-number">
 		<u-number-box
 			v-model="number"
 			:min="column.min || 0"
@@ -7,11 +7,11 @@
 			:step="column.step"
 			:disabled="disabled"
 			:positive-integer="false"
-			@click.native="handleClick"
+                @click="handleClick"
 			@focus="handleFocus"
 			@blur="handleBlur"
 		></u-number-box>
-	</view>
+	</div>
 </template>
 
 <script>

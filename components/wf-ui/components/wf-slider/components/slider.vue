@@ -1,5 +1,5 @@
 <template>
-	<view
+	<div
 		class="wf-slider__box"
 		:style="{
 			width: width + 'px',
@@ -9,11 +9,11 @@
 			border: border
 		}"
 	>
-		<view
+		<div
 			class="wf-slider__glided"
 			:style="{ background: activeColor, borderTopLeftRadius: radius, borderBottomLeftRadius: radius }"
-		></view>
-		<view
+		></div>
+		<div
 			class="wf-slider__block"
 			:style="{
 				width: blockWidth + 'px',
@@ -40,7 +40,7 @@
 			@touchend="parse.touchend"
 		>
 			<slot name="start"></slot>
-			<view
+			<div
 				v-if="showValue"
 				class="wf-value__box"
 				:class="['wf-value__' + position]"
@@ -54,7 +54,7 @@
 				@touchmove.stop="stop"
 			>
 				{{ formatValue(start) }}
-				<view
+				<div
 					:class="['wf-triangle__' + position]"
 					:style="{
 						borderColor:
@@ -62,11 +62,11 @@
 								? `${boxColor} transparent transparent transparent`
 								: `transparent transparent ${boxColor} transparent`
 					}"
-				></view>
-			</view>
-		</view>
+				></div>
+			</div>
+		</div>
 
-		<view
+		<div
 			v-if="section"
 			class="wf-section__block"
 			:style="{
@@ -94,7 +94,7 @@
 			@touchend="parse.sectionTouchend"
 		>
 			<slot name="end"></slot>
-			<view
+			<div
 				v-if="showValue"
 				class="wf-value__box"
 				:class="['wf-value__' + position]"
@@ -108,7 +108,7 @@
 				@touchmove.stop="stop"
 			>
 				{{ formatValue(end) }}
-				<view
+				<div
 					:class="['wf-triangle__' + position]"
 					:style="{
 						borderColor:
@@ -116,14 +116,14 @@
 								? `${boxColor} transparent transparent transparent`
 								: `transparent transparent ${boxColor} transparent`
 					}"
-				></view>
-			</view>
-		</view>
-		<view
+				></div>
+			</div>
+		</div>
+		<div
 			class="wf-section__glided"
 			:style="{ background: activeColor, borderTopRightRadius: radius, borderBottomRightRadius: radius }"
-		></view>
-	</view>
+		></div>
+	</div>
 </template>
 <script src="./slider.wxs" module="parse" lang="wxs"></script>
 <script>

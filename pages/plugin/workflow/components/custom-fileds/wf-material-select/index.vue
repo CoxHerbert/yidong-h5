@@ -52,9 +52,10 @@ export default {
         value: {
             handler(val) {
                 if (val && typeof val === 'object' && val.hasOwnProperty('id')) {
-                    this.$set(this, 'name', val[this.column.props.label] || '');
+                    const labelKey = this.column && this.column.props ? this.column.props.label : '';
+                    this.name = val && labelKey ? val[labelKey] || '' : '';
                 } else {
-                    this.$set(this, 'name', '');
+                    this.name = '';
                 }
             },
             immediate: true,

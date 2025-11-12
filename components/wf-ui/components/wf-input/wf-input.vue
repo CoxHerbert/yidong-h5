@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-input">
+	<div class="wf-input">
 		<u-input
 			v-model="text"
 			:type="typeDic[column.type]"
@@ -8,11 +8,11 @@
 			:disabled="disabled"
 			:height="column.height || '70rpx'"
 			:border="column.border || false"
-			@click.native="handleClick"
+                        @click="handleClick"
 			@focus="handleFocus"
 			@blur="handleBlur"
 		/>
-	</view>
+	</div>
 </template>
 
 <script>

@@ -39,25 +39,25 @@
 					backgroundColor="#eee"
 					@close="moreBtnShow = false"
 				>
-					<view class="menu-item" @click.native="handleOperate('draft')">
+					<view class="menu-item" @click="handleOperate('draft')">
 						暂存
 					</view>
-					<view v-if="getButton('wf_transfer')" class="menu-item" @click.native="handleOperate('transfer')">
+					<view v-if="getButton('wf_transfer')" class="menu-item" @click="handleOperate('transfer')">
 						{{ getButton('wf_transfer').name }}
 					</view>
-					<view v-if="getButton('wf_delegate')" class="menu-item" @click.native="handleOperate('delegate')">
+					<view v-if="getButton('wf_delegate')" class="menu-item" @click="handleOperate('delegate')">
 						{{ getButton('wf_delegate').name }}
 					</view>
-					<view v-if="getButton('wf_rollback')" class="menu-item" @click.native="handleRollback">
+					<view v-if="getButton('wf_rollback')" class="menu-item" @click="handleRollback">
 						{{ getButton('wf_rollback').name }}
 					</view>
-					<view v-if="getButton('wf_terminate')" class="menu-item" @click.native="modalShow = true">
+					<view v-if="getButton('wf_terminate')" class="menu-item" @click="modalShow = true">
 						{{ getButton('wf_terminate').name }}
 					</view>
 					<view
 						v-if="process.isMultiInstance && getButton('wf_add_instance')"
 						class="menu-item"
-						@click.native="handleOperate('addInstance')"
+						@click="handleOperate('addInstance')"
 					>
 						{{ getButton('wf_add_instance').name }}
 					</view>

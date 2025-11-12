@@ -16,8 +16,13 @@
             "通用组件"
         ]
     },
+    "scripts": {
+        "generate:workflow-routes": "node scripts/generate-workflow-routes.js"
+    },
     "dependencies": {
         "html5-qrcode": "^2.3.8",
+        "vant": "^4.8.0",
+        "vue": "^3.4.0",
         "sm-crypto": "^0.3.13",
         "socket.io-client": "^4.8.1",
         "uqrcodejs": "^4.0.7",

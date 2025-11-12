@@ -1,5 +1,5 @@
 <template>
-    <view class="wf-table-select">
+    <div class="wf-table-select">
         <div class="wf-table-select__field" @click="handleClick">
             <u-field
                 v-model="input"
@@ -17,7 +17,7 @@
             :mask-close-able="false"
             safe-area-inset-bottom
         >
-            <view class="wf-table-select__search">
+            <div class="wf-table-select__search">
                 <u-search
                     :placeholder="`请输入${singleSearch.label}`"
                     v-model="searchValue"
@@ -28,7 +28,7 @@
                     @search="tableLoad(true)"
                     @clear="tableLoad(true)"
                 ></u-search>
-            </view>
+            </div>
             <scroll-view scroll-y="true" class="wf-table-select__content">
                 <template v-if="multiple">
                     <checkbox-group @change="handleRowChange">
@@ -47,10 +47,10 @@
                                 @row-expand="handleRowExpand"
                             ></item>
                             <template v-if="item[childrenKey] || item[hasChildrenKey]">
-                                <view v-show="arrowKeys.includes(item[valueKey])">
-                                    <view style="text-align: center">
+                                <div v-show="arrowKeys.includes(item[valueKey])">
+                                    <div style="text-align: center">
                                         <u-icon name="arrow-downward"></u-icon>
-                                    </view>
+                                    </div>
                                     <template v-for="(cItem, cIndex) in item[childrenKey]">
                                         <item
                                             :key="cIndex"
@@ -66,7 +66,7 @@
                                             @row-expand="handleRowExpand"
                                         ></item>
                                     </template>
-                                </view>
+                                </div>
                             </template>
                         </template>
                     </checkbox-group>
@@ -88,10 +88,10 @@
                                 @row-expand="handleRowExpand"
                             ></item>
                             <template v-if="item[childrenKey] || item[hasChildrenKey]">
-                                <view v-show="arrowKeys.includes(item[valueKey])">
-                                    <view style="text-align: center">
+                                <div v-show="arrowKeys.includes(item[valueKey])">
+                                    <div style="text-align: center">
                                         <u-icon name="arrow-downward"></u-icon>
-                                    </view>
+                                    </div>
                                     <template v-for="(cItem, cIndex) in item[childrenKey]">
                                         <item
                                             :key="cIndex"
@@ -107,15 +107,15 @@
                                             @row-expand="handleRowExpand"
                                         ></item>
                                     </template>
-                                </view>
+                                </div>
                             </template>
                         </template>
                     </radio-group>
                 </template>
                 <u-loadmore :status="loadStatus" @loadmore="tableLoad(false)" margin-bottom="30" v-if="needPage" />
             </scroll-view>
-            <view class="wf-table-select__action">
-                <view>
+            <div class="wf-table-select__action">
+                <div>
                     <checkbox-group @change="handleAllCheck" v-if="multiple">
                         <label>
                             <checkbox
@@ -126,16 +126,16 @@
                             全选({{ Array.from(selectionList).length || 0 }})
                         </label>
                     </checkbox-group>
-                </view>
+                </div>
 
-                <view class="wf-table-select__action--right">
+                <div class="wf-table-select__action--right">
                     <button type="warn" size="mini" style="margin-right: 20rpx" @click="close">关闭</button>
                     <button type="warn" size="mini" style="margin-right: 20rpx" @click="handelClear">清空</button>
                     <button type="primary" size="mini" @click="handleSubmit">确定</button>
-                </view>
-            </view>
+                </div>
+            </div>
         </u-popup>
-    </view>
+    </div>
 </template>
 
 <script>

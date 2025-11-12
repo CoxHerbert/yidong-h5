@@ -1,6 +1,6 @@
 <template>
-	<view class="wf-cascade-selection">
-		<view class="wf-cascade-title" v-if="title">{{ title }}</view>
+	<div class="wf-cascade-selection">
+		<div class="wf-cascade-title" v-if="title">{{ title }}</div>
 		<scroll-view
 			scroll-x
 			scroll-with-animation
@@ -9,8 +9,8 @@
 			class="wf-bottom-line"
 			:class="{ 'wf-btm-none': !headerLine }"
 		>
-			<view class="wf-selection-header" :style="{ height: tabsHeight, backgroundColor: backgroundColor }">
-				<view
+			<div class="wf-selection-header" :style="{ height: tabsHeight, backgroundColor: backgroundColor }">
+				<div
 					class="wf-header-item"
 					:class="{ 'wf-font-bold': index === currentTab && bold }"
 					:style="{ color: index === currentTab ? activeColor : color, fontSize: size + 'rpx' }"
@@ -21,9 +21,9 @@
 					:key="index"
 				>
 					{{ item[labelKey] }}
-					<view class="wf-active-line" :style="{ backgroundColor: lineColor }" v-if="index === currentTab && showLine"></view>
-				</view>
-			</view>
+					<div class="wf-active-line" :style="{ backgroundColor: lineColor }" v-if="index === currentTab && showLine"></div>
+				</div>
+			</div>
 		</scroll-view>
 		<swiper
 			class="wf-selection-list"
@@ -34,8 +34,8 @@
 		>
 			<swiper-item v-for="(item, index) in selectedArr" :key="index">
 				<scroll-view scroll-y :scroll-into-view="item.scrollViewId" class="wf-selection-item" :style="{ height: height }">
-					<view class="wf-first-item" :style="{ height: firstItemTop }"></view>
-					<view
+					<div class="wf-first-item" :style="{ height: firstItemTop }"></div>
+					<div
 						class="wf-selection-cell"
 						:style="{ padding: padding, backgroundColor: backgroundColor }"
 						:id="`id_${subIndex}`"
@@ -56,25 +56,25 @@
 							class="wf-cell-img"
 							:style="{ width: imgWidth, height: imgHeight, borderRadius: radius }"
 						></image>
-						<view
+						<div
 							class="wf-cell-title"
 							:class="{ 'wf-font-bold': item.index === subIndex && textBold, 'wf-flex-shrink': nowrap }"
 							:style="{ color: item.index === subIndex ? textActiveColor : textColor, fontSize: textSize + 'rpx' }"
 						>
 							{{ subItem[labelKey] }}
-						</view>
-						<view
+						</div>
+						<div
 							class="wf-cell-sub_title"
 							:style="{ color: subTextColor, fontSize: subTextSize + 'rpx' }"
 							v-if="subItem[descKey]"
 						>
 							{{ subItem[descKey] }}
-						</view>
-					</view>
+						</div>
+					</div>
 				</scroll-view>
 			</swiper-item>
 		</swiper>
-	</view>
+	</div>
 </template>
 
 <script>

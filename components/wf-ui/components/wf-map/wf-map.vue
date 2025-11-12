@@ -1,7 +1,7 @@
 <template>
-	<view class="wf-map">
+	<div class="wf-map">
 		<u-input v-model="address" :placeholder="getPlaceholder(column)" type="text" disabled @click="onClick"></u-input>
-	</view>
+	</div>
 </template>
 
 <script>

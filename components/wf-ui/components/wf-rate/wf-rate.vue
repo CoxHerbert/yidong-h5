@@ -1,5 +1,5 @@
 <template>
-	<view class="wf-rate">
+	<div class="wf-rate">
 		<u-rate
 			v-model="text"
 			:count="column.max || 5"
@@ -11,7 +11,7 @@
 			{{ column.texts[text - 1] }}
 		</span>
 		<span v-else-if="column.showScore && !column.showText" class="wf-rate__text">{{ text }}</span>
-	</view>
+	</div>
 </template>
 
 <script>

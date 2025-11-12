@@ -1,5 +1,5 @@
 <template>
-    <view class="wf-form">
+    <div class="wf-form">
         <u-form class="wf-form-content" ref="form" :model="form" :error-type="['border-bottom', 'toast']">
             <template
                 v-if="option.column && option.column.length > 0 
@@ -40,6 +40,7 @@
 			"
             >
                 <u-collapse
+                    v-model="collapseValue"
                     :accordion="false"
                     hover-class="none"
                     :item-style="{ borderBottom: '1rpx solid #e4e7ed' }"
@@ -90,7 +91,7 @@
                 </u-collapse>
             </template>
         </u-form>
-        <view
+        <div
             v-if="
                 ((option.column && option.column.length > 0) || (option.group && option.group.length > 0)) &&
                 menuBtn.show
@@ -105,8 +106,8 @@
             </u-button>
             <slot name="menu"></slot>
             <!-- <u-button v-if="menuBtn.enptyBtn" :loading="allDisabled"  type="info" size="medium" @click="clear">{{ menuBtn.emptyText }}</u-button> -->
-        </view>
-    </view>
+        </div>
+    </div>
 </template>
 
 <script>
@@ -126,18 +127,22 @@ export default {
                 return { column: [], menuBtn: false };
             },
         },
-        value: {},
+        modelValue: {
+            type: Object,
+            default: () => ({}),
+        },
     },
+    emits: ['update:modelValue', 'submit'],
     watch: {
         form: {
             handler(val) {
                 if (this.formCreate) {
-                    this.$emit('input', val);
+                    this.$emit('update:modelValue', val);
                 }
             },
             deep: true,
         },
-        value: {
+        modelValue: {
             handler(val) {
                 if (this.formCreate) {
                     this.setForm(val);
@@ -190,6 +195,7 @@ export default {
             formVal: {},
             formCreate: false,
             allDisabled: false,
+            collapseValue: [],
         };
     },
     mounted() {
@@ -201,6 +207,15 @@ export default {
             this.initFunc();
             // #endif
             this.formCreate = true;
+            if (Array.isArray(this.option.group)) {
+                this.collapseValue = this.option.group
+                    .map((group, index) => ({
+                        name: group.prop || index,
+                        open: group.collapse !== false,
+                    }))
+                    .filter((item) => item.open)
+                    .map((item) => item.name);
+            }
         }, 200);
     },
     methods: {
@@ -210,7 +225,7 @@ export default {
             this.column.forEach((col) => {
                 this.handleDic(col).then((dic) => {
                     if (!this.validateNull(dic)) {
-                        this.$set(this.dic, col.prop, dic);
+                        this.dic = { ...this.dic, [col.prop]: dic };
                     }
                 });
             });
@@ -237,8 +252,9 @@ export default {
         // #endif
         // 表单赋值
         setForm(value) {
+            if (!value) return;
             Object.keys(value).forEach((ele) => {
-                this.$set(this.form, ele, value[ele]);
+                this.form = { ...this.form, [ele]: value[ele] };
             });
         },
         validateCellForm() {
@@ -291,7 +307,7 @@ export default {
             this.allDisabled = false;
         },
         handleLabelChange({ prop, value }) {
-            this.$set(this.form, `$${prop}`, value);
+            this.form = { ...this.form, [`$${prop}`]: value };
         },
     },
 };
