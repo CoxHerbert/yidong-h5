@@ -27,7 +27,7 @@
         placeholder="请选择抄送人"
         readonly
         is-link
-        @click="emit('user-select', { type: 'copy', checkType: 'checkbox' })"
+        @click="$emit('user-select', { type: 'copy', checkType: 'checkbox' })"
       />
       <van-field
         v-if="!state.hideExamine"
@@ -36,92 +36,87 @@
         placeholder="如不选择则使用默认处理人"
         readonly
         is-link
-        @click="emit('user-select', { type: 'assignee', checkType: 'checkbox' })"
+        @click="$emit('user-select', { type: 'assignee', checkType: 'checkbox' })"
       />
     </van-cell-group>
   </div>
 </template>
 
-<script setup>
-import { reactive, ref, watch } from 'vue';
-
-const props = defineProps({
-  process: { type: Object, default: null },
-  comment: { type: String, default: '' },
-});
-const emit = defineEmits(['user-select', 'update:comment']);
-
-const examineForm = reactive({
-  comment: props.comment || '',
-  copyUser: undefined,
-  $copyUser: undefined,
-  assignee: undefined,
-  $assignee: undefined,
-  attachment: [],
-});
-
-const state = reactive({
-  hideComment: false,
-  hideAttachment: false,
-  hideCopy: false,
-  hideExamine: false,
-});
-
-const fileList = ref([]);
-
-watch(
-  () => props.comment,
-  (val) => {
-    if (typeof val === 'string') {
-      examineForm.comment = val;
-    }
-  }
-);
-
-watch(
-  () => props.process,
-  (val) => {
-    if (!val) return;
-    state.hideComment = Boolean(val.hideComment);
-    state.hideAttachment = Boolean(val.hideComment || val.hideAttachment);
-    state.hideCopy = Boolean(val.hideCopy);
-    state.hideExamine = Boolean(val.hideExamine);
-    if (val.copyUser) {
-      examineForm.copyUser = val.copyUser;
-    }
-    if (val.copyUserName) {
-      examineForm.$copyUser = val.copyUserName;
-    }
+<script>
+export default {
+  name: 'WorkflowExamForm',
+  props: {
+    process: { type: Object, default: null },
+    comment: { type: String, default: '' },
   },
-  { immediate: true, deep: true }
-);
-
-watch(
-  fileList,
-  (list) => {
-    examineForm.attachment = list.map((item) => ({ name: item.name || item.url || '附件', url: item.url }));
+  emits: ['user-select', 'update:comment'],
+  data() {
+    return {
+      examineForm: {
+        comment: this.comment || '',
+        copyUser: undefined,
+        $copyUser: undefined,
+        assignee: undefined,
+        $assignee: undefined,
+        attachment: [],
+      },
+      state: {
+        hideComment: false,
+        hideAttachment: false,
+        hideCopy: false,
+        hideExamine: false,
+      },
+      fileList: [],
+    };
   },
-  { deep: true }
-);
-
-function emitComment(value) {
-  emit('update:comment', value);
-}
-
-function handleAfterRead(item) {
-  const files = Array.isArray(item) ? item : [item];
-  files.forEach((file) => {
-    if (!file.url && file.content) {
-      if (typeof file.content === 'string') {
-        file.url = file.content;
-      } else if (typeof Blob !== 'undefined' && file.content instanceof Blob) {
-        file.url = URL.createObjectURL(file.content);
+  watch: {
+    comment(val) {
+      if (typeof val === 'string') {
+        this.examineForm.comment = val;
       }
-    }
-  });
-}
-
-defineExpose({ examineForm });
+    },
+    process: {
+      immediate: true,
+      deep: true,
+      handler(val) {
+        if (!val) return;
+        this.state.hideComment = Boolean(val.hideComment);
+        this.state.hideAttachment = Boolean(val.hideComment || val.hideAttachment);
+        this.state.hideCopy = Boolean(val.hideCopy);
+        this.state.hideExamine = Boolean(val.hideExamine);
+        if (val.copyUser) {
+          this.examineForm.copyUser = val.copyUser;
+        }
+        if (val.copyUserName) {
+          this.examineForm.$copyUser = val.copyUserName;
+        }
+      },
+    },
+    fileList: {
+      deep: true,
+      handler(list) {
+        this.examineForm.attachment = list.map((item) => ({ name: item.name || item.url || '附件', url: item.url }));
+      },
+    },
+  },
+  methods: {
+    emitComment(value) {
+      this.$emit('update:comment', value);
+    },
+    handleAfterRead(item) {
+      const files = Array.isArray(item) ? item : [item];
+      files.forEach((file) => {
+        if (!file.url && file.content) {
+          if (typeof file.content === 'string') {
+            file.url = file.content;
+          } else if (typeof Blob !== 'undefined' && file.content instanceof Blob) {
+            file.url = URL.createObjectURL(file.content);
+          }
+        }
+      });
+    },
+  },
+};
 </script>
 
 <style scoped>

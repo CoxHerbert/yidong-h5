@@ -4,11 +4,14 @@
   </van-empty>
 </template>
 
-<script setup>
-const props = defineProps({
-  text: { type: String, default: '暂无数据' },
-  icon: { type: String, default: 'default' },
-});
+<script>
+export default {
+  name: 'WfEmpty',
+  props: {
+    text: { type: String, default: '暂无数据' },
+    icon: { type: String, default: 'default' },
+  },
+};
 </script>
 
 <style scoped>

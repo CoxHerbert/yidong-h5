@@ -49,7 +49,7 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import { onMounted, reactive, ref, watch } from 'vue';
 
 import WfForm from '@/components/wf-ui/components/wf-form/wf-form.vue';
@@ -59,141 +59,175 @@ import WorkflowUserSelector from './components/WorkflowUserSelector.vue';
 import { useWorkflowDraft } from './composables/useWorkflowDraft';
 import { useWorkflowForm } from './composables/useWorkflowForm';
 
-const form = reactive({});
-const option = ref(null);
-const submitLoading = ref(false);
-const formRef = ref(null);
-const examFormRef = ref(null);
+export default {
+  name: 'WorkflowFormStartView',
+  components: {
+    WfForm,
+    WorkflowExamForm,
+    WorkflowUserSelector,
+  },
+  setup() {
+    const form = reactive({});
+    const option = ref(null);
+    const submitLoading = ref(false);
+    const formRef = ref(null);
+    const examFormRef = ref(null);
 
-const workflow = useWorkflowForm();
-const draft = useWorkflowDraft();
+    const workflow = useWorkflowForm();
+    const draft = useWorkflowDraft();
 
-const {
-  process,
-  waiting,
-  comment,
-  userSelectorVisible,
-  userSelector,
-  loadStartForm,
-  submitStartForm,
-  openUserSelector,
-  resolveUserSelection,
-  registerExamineForm,
-  navigateTo,
-} = workflow;
+    const {
+      process,
+      waiting,
+      comment,
+      userSelectorVisible,
+      userSelector,
+      loadStartForm,
+      submitStartForm,
+      openUserSelector,
+      resolveUserSelection,
+      registerExamineForm,
+      navigateTo,
+    } = workflow;
 
-const {
-  saveDraftVisible,
-  recoverDraftVisible,
-  openSaveDraft,
-  submitDraftRequest,
-  confirmRecoverDraft,
-  cancelRecoverDraft,
-  initDraft,
-} = draft;
+    const {
+      saveDraftVisible,
+      recoverDraftVisible,
+      openSaveDraft,
+      submitDraftRequest,
+      confirmRecoverDraft,
+      cancelRecoverDraft,
+      initDraft,
+    } = draft;
 
-const showExamForm = ref(true);
+    const showExamForm = ref(true);
 
-onMounted(() => {
-  if (examFormRef.value) {
-    registerExamineForm(examFormRef.value);
-  }
-  const payload = workflow.extractRoutePayload();
-  if (payload?.processId) {
-    loadForm(payload.processId);
-  }
-});
-
-watch(examFormRef, (val) => {
-  if (val) {
-    registerExamineForm(val);
-  }
-});
-
-async function loadForm(processDefId) {
-  const data = await loadStartForm(processDefId);
-  if (!data) return;
-  const optionConfig = parseOption(data.form || data.appForm);
-  const startForm = Array.isArray(data.startForm) ? data.startForm : [];
-  const columnFilter = workflow.filterAvueColumn(optionConfig.column || [], startForm);
-  const groups = [];
-  (optionConfig.group || []).forEach((group) => {
-    const groupFilter = workflow.filterAvueColumn(group.column || [], startForm);
-    if (groupFilter.column.length > 0) {
-      groups.push({ ...group, column: groupFilter.column });
+    async function loadForm(processDefId) {
+      const data = await loadStartForm(processDefId);
+      if (!data) return;
+      const optionConfig = parseOption(data.form || data.appForm);
+      const startForm = Array.isArray(data.startForm) ? data.startForm : [];
+      const columnFilter = workflow.filterAvueColumn(optionConfig.column || [], startForm);
+      const groups = [];
+      (optionConfig.group || []).forEach((group) => {
+        const groupFilter = workflow.filterAvueColumn(group.column || [], startForm);
+        if (groupFilter.column.length > 0) {
+          groups.push({ ...group, column: groupFilter.column });
+        }
+      });
+      option.value = {
+        ...optionConfig,
+        column: columnFilter.column,
+        group: groups,
+        labelPosition: 'top',
+        submitBtn: false,
+        menuBtn: false,
+      };
+      showExamForm.value = !(process.value?.hideComment && process.value?.hideCopy && process.value?.hideExamine);
+      await initDraft({ processDefId });
     }
-  });
-  option.value = {
-    ...optionConfig,
-    column: columnFilter.column,
-    group: groups,
-    labelPosition: 'top',
-    submitBtn: false,
-    menuBtn: false,
-  };
-  showExamForm.value = !(process.value?.hideComment && process.value?.hideCopy && process.value?.hideExamine);
-  await initDraft({ processDefId });
-}
 
-function parseOption(payload) {
-  if (!payload) return {};
-  if (typeof payload === 'string') {
-    try {
-      return JSON.parse(payload);
-    } catch (error) {
+    function parseOption(payload) {
+      if (!payload) return {};
+      if (typeof payload === 'string') {
+        try {
+          return JSON.parse(payload);
+        } catch (error) {
+          try {
+            // eslint-disable-next-line no-eval
+            return eval('(' + payload + ')');
+          } catch (err) {
+            console.warn('[workflow] parse option failed', err);
+            return {};
+          }
+        }
+      }
+      return payload;
+    }
+
+    async function handleSubmit(submitForm) {
+      if (!process.value) return;
+      submitLoading.value = true;
       try {
-        // eslint-disable-next-line no-eval
-        return eval('(' + payload + ')');
-      } catch (err) {
-        console.warn('[workflow] parse option failed', err);
-        return {};
+        const extras = examFormRef.value?.examineForm;
+        await submitStartForm({ ...submitForm, processId: process.value.id, wf_platform: 'app' }, extras);
+        navigateTo({ name: 'workflow-mine', query: { current: '1' } }, '发起成功');
+      } catch (error) {
+        console.warn(error);
+      } finally {
+        submitLoading.value = false;
       }
     }
-  }
-  return payload;
-}
 
-async function handleSubmit(submitForm) {
-  if (!process.value) return;
-  submitLoading.value = true;
-  try {
-    const extras = examFormRef.value?.examineForm;
-    await submitStartForm({ ...submitForm, processId: process.value.id, wf_platform: 'app' }, extras);
-    navigateTo({ name: 'workflow-mine', query: { current: '1' } }, '发起成功');
-  } catch (error) {
-    console.warn(error);
-  } finally {
-    submitLoading.value = false;
-  }
-}
+    function handleUserSelect(payload) {
+      openUserSelector(payload);
+    }
 
-function handleUserSelect(payload) {
-  openUserSelector(payload);
-}
+    function handleUserSelectorCancel() {
+      userSelectorVisible.value = false;
+    }
 
-function handleUserSelectorCancel() {
-  userSelectorVisible.value = false;
-}
+    function openDraft() {
+      openSaveDraft({
+        processDefId: process.value?.id,
+        formKey: process.value?.formKey,
+        variables: form,
+      });
+    }
 
-function openDraft() {
-  openSaveDraft({
-    processDefId: process.value?.id,
-    formKey: process.value?.formKey,
-    variables: form,
-  });
-}
+    async function submitDraft() {
+      await submitDraftRequest();
+      navigateTo({ name: 'workflow-create' });
+    }
 
-async function submitDraft() {
-  await submitDraftRequest();
-  navigateTo({ name: 'workflow-create' });
-}
+    function recoverDraft() {
+      const data = confirmRecoverDraft();
+      if (data) {
+        Object.assign(form, data);
+      }
+    }
 
-function recoverDraft() {
-  const data = confirmRecoverDraft();
-  if (data) {
-    Object.assign(form, data);
-  }
-}
+    onMounted(() => {
+      if (examFormRef.value) {
+        registerExamineForm(examFormRef.value);
+      }
+      const payload = workflow.extractRoutePayload();
+      if (payload?.processId) {
+        loadForm(payload.processId);
+      }
+    });
+
+    watch(examFormRef, (val) => {
+      if (val) {
+        registerExamineForm(val);
+      }
+    });
+
+    return {
+      form,
+      option,
+      submitLoading,
+      formRef,
+      examFormRef,
+      process,
+      waiting,
+      comment,
+      userSelectorVisible,
+      userSelector,
+      showExamForm,
+      saveDraftVisible,
+      recoverDraftVisible,
+      resolveUserSelection,
+      cancelRecoverDraft,
+      handleSubmit,
+      handleUserSelect,
+      handleUserSelectorCancel,
+      openDraft,
+      submitDraft,
+      recoverDraft,
+    };
+  },
+};
 </script>
 
 <style scoped>

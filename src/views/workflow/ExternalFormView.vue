@@ -4,8 +4,10 @@
   </div>
 </template>
 
-<script setup>
-// External workflow form placeholder
+<script>
+export default {
+  name: 'WorkflowExternalFormView',
+};
 </script>
 
 <style scoped>

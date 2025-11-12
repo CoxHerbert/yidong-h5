@@ -19,8 +19,7 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue';
+<script>
 import WfInput from '../wf-input/wf-input.vue';
 import WfSelect from '../wf-select/wf-select.vue';
 import WfRadio from '../wf-radio/wf-radio.vue';
@@ -34,62 +33,78 @@ import WfNumber from '../wf-number/wf-number.vue';
 import WfCascader from '../wf-cascader/wf-cascader.vue';
 import WfDynamic from '../wf-dynamic/wf-dynamic.vue';
 
-const props = defineProps({
-  modelValue: { type: [String, Number, Array, Object, Boolean], default: undefined },
-  column: { type: Object, required: true },
-  dic: { type: Array, default: () => [] },
-  disabled: Boolean,
-  dynamicIndex: Number,
-});
-
-const emit = defineEmits(['update:modelValue', 'change', 'label-change']);
-
-const value = computed({
-  get() {
-    return props.modelValue;
+export default {
+  name: 'WfFormItem',
+  components: {
+    WfInput,
+    WfSelect,
+    WfRadio,
+    WfCheckbox,
+    WfSwitch,
+    WfRate,
+    WfSlider,
+    WfDate,
+    WfUpload,
+    WfNumber,
+    WfCascader,
+    WfDynamic,
   },
-  set(val) {
-    emit('update:modelValue', val);
-    emit('change', val);
+  props: {
+    modelValue: { type: [String, Number, Array, Object, Boolean], default: undefined },
+    column: { type: Object, required: true },
+    dic: { type: Array, default: () => [] },
+    disabled: Boolean,
+    dynamicIndex: Number,
   },
-});
-
-const componentName = computed(() => {
-  const type = props.column.type || 'input';
-  const map = {
-    input: WfInput,
-    textarea: WfInput,
-    password: WfInput,
-    number: WfNumber,
-    select: WfSelect,
-    cascader: WfCascader,
-    tree: WfCascader,
-    radio: WfRadio,
-    checkbox: WfCheckbox,
-    switch: WfSwitch,
-    rate: WfRate,
-    slider: WfSlider,
-    date: WfDate,
-    dates: WfDate,
-    datetime: WfDate,
-    datetimerange: WfDate,
-    daterange: WfDate,
-    time: WfDate,
-    timerange: WfDate,
-    upload: WfUpload,
-    dynamic: WfDynamic,
-  };
-  return map[type] || WfInput;
-});
-
-const required = computed(() => {
-  const rules = props.column.rules || [];
-  return rules.some((rule) => rule.required);
-});
-
-function emitLabelChange(value) {
-  emit('label-change', value);
-}
+  emits: ['update:modelValue', 'change', 'label-change'],
+  computed: {
+    value: {
+      get() {
+        return this.modelValue;
+      },
+      set(val) {
+        this.$emit('update:modelValue', val);
+        this.$emit('change', val);
+      },
+    },
+    componentName() {
+      const type = this.column.type || 'input';
+      const map = {
+        input: 'WfInput',
+        textarea: 'WfInput',
+        password: 'WfInput',
+        number: 'WfNumber',
+        select: 'WfSelect',
+        cascader: 'WfCascader',
+        tree: 'WfCascader',
+        radio: 'WfRadio',
+        checkbox: 'WfCheckbox',
+        switch: 'WfSwitch',
+        rate: 'WfRate',
+        slider: 'WfSlider',
+        date: 'WfDate',
+        dates: 'WfDate',
+        datetime: 'WfDate',
+        datetimerange: 'WfDate',
+        daterange: 'WfDate',
+        time: 'WfDate',
+        timerange: 'WfDate',
+        upload: 'WfUpload',
+        dynamic: 'WfDynamic',
+      };
+      return map[type] || 'WfInput';
+    },
+    required() {
+      const rules = this.column.rules || [];
+      return rules.some((rule) => rule.required);
+    },
+  },
+  methods: {
+    emitLabelChange(value) {
+      this.$emit('label-change', value);
+    },
+  },
+};
 </script>
 
 <style scoped>

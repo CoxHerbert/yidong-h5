@@ -21,91 +21,94 @@
   </div>
 </template>
 
-<script setup>
-import { computed, ref, watch } from 'vue';
-import { useFieldValue } from '../../composables/useFieldValue.js';
+<script>
+import fieldValueMixin from '../../mixins/fieldValue.js';
 
-const props = defineProps({
-  modelValue: { type: [String, Number, Array], default: undefined },
-  column: { type: Object, default: () => ({}) },
-  disabled: Boolean,
-  dynamicIndex: Number,
-});
-
-const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change']);
-
-const { value, placeholder, click } = useFieldValue(props, emit);
-
-const showPicker = ref(false);
-const currentValues = ref([]);
-
-const pickerType = computed(() => props.column.type || 'date');
-
-const pickerComponent = computed(() =>
-  pickerType.value.includes('time') && !pickerType.value.includes('date') ? 'van-time-picker' : 'van-date-picker'
-);
-
-const columnsType = computed(() => {
-  if (pickerType.value.includes('time') && !pickerType.value.includes('date')) {
-    return ['hour', 'minute', 'second'];
-  }
-  if (pickerType.value.includes('datetime')) {
-    return ['year', 'month', 'day', 'hour', 'minute'];
-  }
-  return ['year', 'month', 'day'];
-});
-
-const displayText = computed({
-  get() {
-    return value.value ? String(value.value) : '';
+export default {
+  name: 'WfDate',
+  mixins: [fieldValueMixin],
+  props: {
+    modelValue: { type: [String, Number, Array], default: undefined },
+    column: { type: Object, default: () => ({}) },
+    disabled: Boolean,
+    dynamicIndex: Number,
   },
-  set() {},
-});
-
-watch(
-  () => value.value,
-  (val) => {
-    currentValues.value = parseValue(val);
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change'],
+  data() {
+    return {
+      showPicker: false,
+      currentValues: [],
+    };
   },
-  { immediate: true }
-);
-
-function openPicker(event) {
-  click(event);
-  if (disabled) return;
-  showPicker.value = true;
-}
-
-function parseValue(val) {
-  if (!val) return [];
-  const stringVal = Array.isArray(val) ? val.join('-') : String(val);
-  if (pickerType.value.includes('time') && !pickerType.value.includes('date')) {
-    return stringVal.split(':');
-  }
-  if (pickerType.value.includes('datetime')) {
-    const [datePart, timePart] = stringVal.split(' ');
-    const [hour = '00', minute = '00'] = (timePart || '00:00').split(':');
-    return [...(datePart || '').split('-'), hour, minute];
-  }
-  return stringVal.split('-');
-}
-
-function formatValue(values) {
-  if (pickerType.value.includes('time') && !pickerType.value.includes('date')) {
-    return values.slice(0, 3).join(':');
-  }
-  if (pickerType.value.includes('datetime')) {
-    const [year, month, day, hour = '00', minute = '00'] = values;
-    return `${year}-${month}-${day} ${hour}:${minute}`;
-  }
-  const [year, month, day] = values;
-  return [year, month, day].filter(Boolean).join('-');
-}
-
-function handleConfirm({ selectedValues }) {
-  value.value = formatValue(selectedValues);
-  showPicker.value = false;
-}
+  computed: {
+    pickerType() {
+      return this.column.type || 'date';
+    },
+    pickerComponent() {
+      return this.pickerType.includes('time') && !this.pickerType.includes('date')
+        ? 'van-time-picker'
+        : 'van-date-picker';
+    },
+    columnsType() {
+      if (this.pickerType.includes('time') && !this.pickerType.includes('date')) {
+        return ['hour', 'minute', 'second'];
+      }
+      if (this.pickerType.includes('datetime')) {
+        return ['year', 'month', 'day', 'hour', 'minute'];
+      }
+      return ['year', 'month', 'day'];
+    },
+    displayText: {
+      get() {
+        return this.fieldValue ? String(this.fieldValue) : '';
+      },
+      set() {},
+    },
+  },
+  watch: {
+    fieldValue: {
+      immediate: true,
+      handler(val) {
+        this.currentValues = this.parseValue(val);
+      },
+    },
+  },
+  methods: {
+    openPicker(event) {
+      this.click(event);
+      if (this.disabled) return;
+      this.showPicker = true;
+    },
+    parseValue(val) {
+      if (!val) return [];
+      const stringVal = Array.isArray(val) ? val.join('-') : String(val);
+      if (this.pickerType.includes('time') && !this.pickerType.includes('date')) {
+        return stringVal.split(':');
+      }
+      if (this.pickerType.includes('datetime')) {
+        const [datePart, timePart] = stringVal.split(' ');
+        const [hour = '00', minute = '00'] = (timePart || '00:00').split(':');
+        return [...(datePart || '').split('-'), hour, minute];
+      }
+      return stringVal.split('-');
+    },
+    formatValue(values) {
+      if (this.pickerType.includes('time') && !this.pickerType.includes('date')) {
+        return values.slice(0, 3).join(':');
+      }
+      if (this.pickerType.includes('datetime')) {
+        const [year, month, day, hour = '00', minute = '00'] = values;
+        return `${year}-${month}-${day} ${hour}:${minute}`;
+      }
+      const [year, month, day] = values;
+      return [year, month, day].filter(Boolean).join('-');
+    },
+    handleConfirm({ selectedValues }) {
+      this.fieldValue = this.formatValue(selectedValues);
+      this.showPicker = false;
+    },
+  },
+};
 </script>
 
 <style scoped>

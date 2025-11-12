@@ -8,36 +8,41 @@
   <van-empty v-else description="暂无流程图数据" />
 </template>
 
-<script setup>
-import { computed, ref, watch } from 'vue';
-
-const props = defineProps({
-  bpmnOption: { type: Object, default: null },
-});
-
-const loading = ref(true);
-
-const src = computed(() => {
-  const option = props.bpmnOption;
-  if (!option?.processInsId || !option?.taskId || !option?.token) {
-    return '';
-  }
-  const base = import.meta.env.DEV ? 'http://localhost:2888' : 'https://www.eastwinbip.com';
-  const query = new URLSearchParams({
-    processInsId: option.processInsId,
-    taskId: option.taskId,
-    token: option.token,
-  });
-  return `${base}/process-priview?${query.toString()}`;
-});
-
-watch(
-  () => props.bpmnOption,
-  () => {
-    loading.value = true;
+<script>
+export default {
+  name: 'WorkflowBpmnPreview',
+  props: {
+    bpmnOption: { type: Object, default: null },
   },
-  { deep: true }
-);
+  data() {
+    return {
+      loading: true,
+    };
+  },
+  computed: {
+    src() {
+      const option = this.bpmnOption;
+      if (!option?.processInsId || !option?.taskId || !option?.token) {
+        return '';
+      }
+      const base = import.meta.env.DEV ? 'http://localhost:2888' : 'https://www.eastwinbip.com';
+      const query = new URLSearchParams({
+        processInsId: option.processInsId,
+        taskId: option.taskId,
+        token: option.token,
+      });
+      return `${base}/process-priview?${query.toString()}`;
+    },
+  },
+  watch: {
+    bpmnOption: {
+      deep: true,
+      handler() {
+        this.loading = true;
+      },
+    },
+  },
+};
 </script>
 
 <style scoped>

@@ -40,106 +40,116 @@
   </div>
 </template>
 
-<script setup>
-import { computed, ref, watch } from 'vue';
-
+<script>
 import WfForm from '../wf-form/wf-form.vue';
 import { deepClone } from '../../util/index.js';
 
-const props = defineProps({
-  modelValue: { type: Array, default: () => [] },
-  column: { type: Object, required: true },
-  disabled: Boolean,
-  dic: { type: Array, default: () => [] },
-  dynamicIndex: Number,
-});
-
-const emit = defineEmits(['update:modelValue', 'change', 'label-change']);
-
-const items = ref([]);
-
-watch(
-  () => props.modelValue,
-  (val) => {
-    if (Array.isArray(val)) {
-      items.value = deepClone(val);
-    } else if (val === null || val === undefined) {
-      items.value = [];
-    } else {
-      items.value = deepClone([val]);
-    }
+export default {
+  name: 'WfDynamic',
+  components: { WfForm },
+  props: {
+    modelValue: { type: Array, default: () => [] },
+    column: { type: Object, required: true },
+    disabled: Boolean,
+    dic: { type: Array, default: () => [] },
+    dynamicIndex: Number,
   },
-  { immediate: true, deep: true }
-);
-
-watch(
-  items,
-  (val) => {
-    emit('update:modelValue', deepClone(val));
-    emit('change', deepClone(val));
+  emits: ['update:modelValue', 'change', 'label-change'],
+  data() {
+    return {
+      items: [],
+    };
   },
-  { deep: true }
-);
-
-const childColumns = computed(() => props.column?.children?.column || []);
-
-const addText = computed(() => props.column?.children?.addBtnText || '新增');
-const removeText = computed(() => props.column?.children?.delBtnText || '移除');
-const canAdd = computed(() => props.column?.children?.addBtn !== false && !props.disabled && !props.column?.detail);
-const canRemove = computed(() => props.column?.children?.delBtn !== false && !props.disabled && !props.column?.detail);
-
-function createEmptyRow() {
-  const row = {};
-  childColumns.value.forEach((column) => {
-    if (!column?.prop) return;
-    if (column.value !== undefined) {
-      row[column.prop] = deepClone(column.value);
-    } else {
-      row[column.prop] = undefined;
-    }
-  });
-  return row;
-}
-
-function resolveChildOption(index) {
-  const option = deepClone(props.column?.children || {});
-  option.column = childColumns.value.map((col) => ({ ...col }));
-  option.menuBtn = false;
-  option.submitBtn = false;
-  option.detail = props.column?.detail || props.disabled;
-  option.readonly = props.column?.readonly || props.disabled;
-  option.disabled = props.column?.disabled || props.disabled;
-  option.dynamicIndex = index;
-  option.labelPosition = option.labelPosition || 'top';
-  return option;
-}
-
-function updateRow(index, value) {
-  const list = deepClone(items.value);
-  list[index] = deepClone(value);
-  items.value = list;
-}
-
-function forwardLabelChange(index, payload) {
-  emit('label-change', { index, ...payload });
-}
-
-function add() {
-  const list = deepClone(items.value);
-  list.push(createEmptyRow());
-  items.value = list;
-}
-
-function remove(index) {
-  const list = deepClone(items.value);
-  list.splice(index, 1);
-  items.value = list;
-}
-
-function renderTitle(index) {
-  const baseTitle = props.column?.children?.title || props.column?.label || '子表单';
-  return `${baseTitle} ${index + 1}`;
-}
+  computed: {
+    childColumns() {
+      return this.column?.children?.column || [];
+    },
+    addText() {
+      return this.column?.children?.addBtnText || '新增';
+    },
+    removeText() {
+      return this.column?.children?.delBtnText || '移除';
+    },
+    canAdd() {
+      return this.column?.children?.addBtn !== false && !this.disabled && !this.column?.detail;
+    },
+    canRemove() {
+      return this.column?.children?.delBtn !== false && !this.disabled && !this.column?.detail;
+    },
+  },
+  watch: {
+    modelValue: {
+      immediate: true,
+      deep: true,
+      handler(val) {
+        if (Array.isArray(val)) {
+          this.items = deepClone(val);
+        } else if (val === null || val === undefined) {
+          this.items = [];
+        } else {
+          this.items = deepClone([val]);
+        }
+      },
+    },
+    items: {
+      deep: true,
+      handler(val) {
+        const cloned = deepClone(val);
+        this.$emit('update:modelValue', cloned);
+        this.$emit('change', cloned);
+      },
+    },
+  },
+  methods: {
+    createEmptyRow() {
+      const row = {};
+      this.childColumns.forEach((column) => {
+        if (!column?.prop) return;
+        if (column.value !== undefined) {
+          row[column.prop] = deepClone(column.value);
+        } else {
+          row[column.prop] = undefined;
+        }
+      });
+      return row;
+    },
+    resolveChildOption(index) {
+      const option = deepClone(this.column?.children || {});
+      option.column = this.childColumns.map((col) => ({ ...col }));
+      option.menuBtn = false;
+      option.submitBtn = false;
+      option.detail = this.column?.detail || this.disabled;
+      option.readonly = this.column?.readonly || this.disabled;
+      option.disabled = this.column?.disabled || this.disabled;
+      option.dynamicIndex = index;
+      option.labelPosition = option.labelPosition || 'top';
+      return option;
+    },
+    updateRow(index, value) {
+      const list = deepClone(this.items);
+      list[index] = deepClone(value);
+      this.items = list;
+    },
+    forwardLabelChange(index, payload) {
+      const detail = typeof payload === 'object' && payload !== null ? payload : { value: payload };
+      this.$emit('label-change', { index, ...detail });
+    },
+    add() {
+      const list = deepClone(this.items);
+      list.push(this.createEmptyRow());
+      this.items = list;
+    },
+    remove(index) {
+      const list = deepClone(this.items);
+      list.splice(index, 1);
+      this.items = list;
+    },
+    renderTitle(index) {
+      const baseTitle = this.column?.children?.title || this.column?.label || '子表单';
+      return `${baseTitle} ${index + 1}`;
+    },
+  },
+};
 </script>
 
 <style scoped>

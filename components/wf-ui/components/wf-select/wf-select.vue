@@ -18,59 +18,63 @@
   </div>
 </template>
 
-<script setup>
-import { computed, ref } from 'vue';
-import { useFieldValue } from '../../composables/useFieldValue.js';
+<script>
+import fieldValueMixin from '../../mixins/fieldValue.js';
 import { DIC_PROPS } from '../../util/variable.js';
 
-const props = defineProps({
-  modelValue: { type: [String, Number, Array], default: undefined },
-  column: { type: Object, required: true },
-  dic: { type: Array, default: () => [] },
-  disabled: Boolean,
-  dynamicIndex: Number,
-});
-
-const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change']);
-
-const { value, textLabel, placeholder, click } = useFieldValue(props, emit);
-
-const showPicker = ref(false);
-
-const dicProps = computed(() => ({ ...DIC_PROPS, ...(props.column.props || {}) }));
-
-const pickerColumns = computed(() => {
-  const propsMap = dicProps.value;
-  const valueKey = propsMap.value;
-  const labelKey = propsMap.label;
-  return (props.dic || []).map((item) => ({
-    text: item[labelKey],
-    value: item[valueKey],
-  }));
-});
-
-const displayText = computed({
-  get() {
-    return textLabel.value || '';
+export default {
+  name: 'WfSelect',
+  mixins: [fieldValueMixin],
+  props: {
+    modelValue: { type: [String, Number, Array], default: undefined },
+    column: { type: Object, required: true },
+    dic: { type: Array, default: () => [] },
+    disabled: Boolean,
+    dynamicIndex: Number,
   },
-  set() {},
-});
-
-function openPicker(event) {
-  click(event);
-  if (disabled) return;
-  showPicker.value = true;
-}
-
-function handleConfirm({ selectedOptions }) {
-  const option = Array.isArray(selectedOptions) ? selectedOptions[0] : selectedOptions;
-  if (!option) {
-    showPicker.value = false;
-    return;
-  }
-  value.value = option.value;
-  showPicker.value = false;
-}
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change'],
+  data() {
+    return {
+      showPicker: false,
+    };
+  },
+  computed: {
+    dicProps() {
+      return { ...DIC_PROPS, ...(this.column.props || {}) };
+    },
+    pickerColumns() {
+      const propsMap = this.dicProps;
+      const valueKey = propsMap.value;
+      const labelKey = propsMap.label;
+      return (this.dic || []).map((item) => ({
+        text: item[labelKey],
+        value: item[valueKey],
+      }));
+    },
+    displayText: {
+      get() {
+        return this.textLabel || '';
+      },
+      set() {},
+    },
+  },
+  methods: {
+    openPicker(event) {
+      this.click(event);
+      if (this.disabled) return;
+      this.showPicker = true;
+    },
+    handleConfirm({ selectedOptions }) {
+      const option = Array.isArray(selectedOptions) ? selectedOptions[0] : selectedOptions;
+      if (!option) {
+        this.showPicker = false;
+        return;
+      }
+      this.fieldValue = option.value;
+      this.showPicker = false;
+    },
+  },
+};
 </script>
 
 <style scoped>

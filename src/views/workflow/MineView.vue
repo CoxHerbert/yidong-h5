@@ -22,7 +22,7 @@
   </div>
 </template>
 
-<script setup>
+<script>
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -30,67 +30,87 @@ import { doneList, myDoneList, sendList, todoList } from '@/api/workflow/process
 
 import WorkflowTaskList from './components/WorkflowTaskList.vue';
 
-const keyword = ref('');
-const activeTab = ref(0);
-const tasks = ref([]);
-const loading = ref(false);
-const finished = ref(false);
-const page = ref(1);
-const pageSize = 5;
+export default {
+  name: 'WorkflowMineView',
+  components: {
+    WorkflowTaskList,
+  },
+  setup() {
+    const keyword = ref('');
+    const activeTab = ref(0);
+    const tasks = ref([]);
+    const loading = ref(false);
+    const finished = ref(false);
+    const page = ref(1);
+    const pageSize = 5;
 
-const tabs = [
-  { name: '我的待办', loader: todoList },
-  { name: '我的请求', loader: sendList },
-  { name: '我的已办', loader: myDoneList },
-  { name: '办结事宜', loader: doneList },
-];
+    const tabs = [
+      { name: '我的待办', loader: todoList },
+      { name: '我的请求', loader: sendList },
+      { name: '我的已办', loader: myDoneList },
+      { name: '办结事宜', loader: doneList },
+    ];
 
-const route = useRoute();
+    const route = useRoute();
 
-onMounted(() => {
-  if (route.query.current) {
-    activeTab.value = Number(route.query.current);
-  }
-  refresh();
-});
-
-async function fetchList(reset = false) {
-  if (loading.value) return;
-  loading.value = true;
-  try {
-    if (reset) {
-      page.value = 1;
-      tasks.value = [];
-      finished.value = false;
+    async function fetchList(reset = false) {
+      if (loading.value) return;
+      loading.value = true;
+      try {
+        if (reset) {
+          page.value = 1;
+          tasks.value = [];
+          finished.value = false;
+        }
+        const loader = tabs[activeTab.value]?.loader;
+        if (!loader) return;
+        const response = await loader({
+          processDefinitionName: keyword.value,
+          current: page.value,
+          size: pageSize,
+        });
+        const data = response?.data ?? response;
+        const records = data?.records || [];
+        tasks.value = reset ? records : tasks.value.concat(records);
+        finished.value = records.length < pageSize;
+        page.value += 1;
+      } finally {
+        loading.value = false;
+      }
     }
-    const loader = tabs[activeTab.value]?.loader;
-    if (!loader) return;
-    const response = await loader({
-      processDefinitionName: keyword.value,
-      current: page.value,
-      size: pageSize,
+
+    function refresh() {
+      fetchList(true);
+    }
+
+    function loadMore() {
+      fetchList(false);
+    }
+
+    function handleTabChange() {
+      refresh();
+    }
+
+    onMounted(() => {
+      if (route.query.current) {
+        activeTab.value = Number(route.query.current);
+      }
+      refresh();
     });
-    const data = response?.data ?? response;
-    const records = data?.records || [];
-    tasks.value = reset ? records : tasks.value.concat(records);
-    finished.value = records.length < pageSize;
-    page.value += 1;
-  } finally {
-    loading.value = false;
-  }
-}
 
-function refresh() {
-  fetchList(true);
-}
-
-function loadMore() {
-  fetchList(false);
-}
-
-function handleTabChange() {
-  refresh();
-}
+    return {
+      keyword,
+      activeTab,
+      tasks,
+      loading,
+      finished,
+      tabs,
+      loadMore,
+      refresh,
+      handleTabChange,
+    };
+  },
+};
 </script>
 
 <style scoped>

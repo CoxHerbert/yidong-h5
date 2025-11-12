@@ -57,13 +57,7 @@
   </div>
 </template>
 
-<script setup>
-import { computed, ref } from 'vue';
-
-const props = defineProps({
-  flow: { type: Array, default: () => [] },
-});
-
+<script>
 const commentMap = {
   assigneeComment: '变更审核人',
   dispatchComment: '调度意见',
@@ -78,38 +72,50 @@ const commentMap = {
   comment: '审批意见',
 };
 
-const expandedIndex = ref(null);
-const defaultCommentCount = 1;
-
-const filteredFlow = computed(() =>
-  (props.flow || []).filter((item) => !['candidate', 'sequenceFlow'].includes(item.historyActivityType || ''))
-);
-
-const activeStep = computed(() => Math.max(filteredFlow.value.length - 1, 0));
-
-function renderNodeName(item) {
-  if (item.historyActivityType === 'endEvent') {
-    return `在 [${item.createTime}] 完成流程`;
-  }
-  return `${item.assigneeName || '未指定'} 在 [${item.createTime}] 处理 [${item.historyActivityName || '未命名'}]`;
-}
-
-function visibleComments(comments, index) {
-  const addComments = comments.filter((c) => c.action === 'AddComment');
-  if (expandedIndex.value === index) {
-    return addComments;
-  }
-  return addComments.slice(0, defaultCommentCount);
-}
-
-function formatComment(comment) {
-  const label = commentMap[comment.type] || '审批意见';
-  return `${label}：${comment.fullMessage ?? ''}`;
-}
-
-function toggleExpand(index) {
-  expandedIndex.value = expandedIndex.value === index ? null : index;
-}
+export default {
+  name: 'WorkflowFlowTimeline',
+  props: {
+    flow: { type: Array, default: () => [] },
+  },
+  data() {
+    return {
+      expandedIndex: null,
+      defaultCommentCount: 1,
+    };
+  },
+  computed: {
+    filteredFlow() {
+      return (this.flow || []).filter(
+        (item) => !['candidate', 'sequenceFlow'].includes(item.historyActivityType || '')
+      );
+    },
+    activeStep() {
+      return Math.max(this.filteredFlow.length - 1, 0);
+    },
+  },
+  methods: {
+    renderNodeName(item) {
+      if (item.historyActivityType === 'endEvent') {
+        return `在 [${item.createTime}] 完成流程`;
+      }
+      return `${item.assigneeName || '未指定'} 在 [${item.createTime}] 处理 [${item.historyActivityName || '未命名'}]`;
+    },
+    visibleComments(comments, index) {
+      const addComments = comments.filter((c) => c.action === 'AddComment');
+      if (this.expandedIndex === index) {
+        return addComments;
+      }
+      return addComments.slice(0, this.defaultCommentCount);
+    },
+    formatComment(comment) {
+      const label = commentMap[comment.type] || '审批意见';
+      return `${label}：${comment.fullMessage ?? ''}`;
+    },
+    toggleExpand(index) {
+      this.expandedIndex = this.expandedIndex === index ? null : index;
+    },
+  },
+};
 </script>
 
 <style scoped>

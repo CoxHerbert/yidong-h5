@@ -2,6 +2,8 @@
   <router-view />
 </template>
 
-<script setup>
-// Workflow layout placeholder for nested routes
+<script>
+export default {
+  name: 'WorkflowLayout',
+};
 </script>
