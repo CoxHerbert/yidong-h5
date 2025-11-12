@@ -1,5 +1,5 @@
 <template>
-  <div class="wf-form-item">
+  <div class="wf-form-item" :data-testid="`wf-field-${column.prop}`">
     <div class="wf-form-item__label" v-if="column.label">
       <span class="wf-form-item__label-text">{{ column.label }}</span>
       <span v-if="required" class="wf-form-item__required">*</span>
@@ -32,6 +32,7 @@ import WfDate from '../wf-date/wf-date.vue';
 import WfUpload from '../wf-upload/wf-upload.vue';
 import WfNumber from '../wf-number/wf-number.vue';
 import WfCascader from '../wf-cascader/wf-cascader.vue';
+import WfDynamic from '../wf-dynamic/wf-dynamic.vue';
 
 const props = defineProps({
   modelValue: { type: [String, Number, Array, Object, Boolean], default: undefined },
@@ -76,6 +77,7 @@ const componentName = computed(() => {
     time: WfDate,
     timerange: WfDate,
     upload: WfUpload,
+    dynamic: WfDynamic,
   };
   return map[type] || WfInput;
 });

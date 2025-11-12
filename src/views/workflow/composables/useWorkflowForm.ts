@@ -3,7 +3,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { showToast } from 'vant';
 
 import { useWorkflowStore } from '@/stores/workflow';
-import type { ProcessFormResponse, TaskDetailResponse } from '@/api/workflow/task';
+import type { ProcessFormResponse, TaskDetailResponse } from '@/api/workflow';
 
 interface ExamineFormExpose {
   examineForm: {

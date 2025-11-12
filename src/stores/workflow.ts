@@ -11,8 +11,8 @@ import {
   terminateProcess,
   transferTask,
   withdrawTask,
-} from '@/api/workflow/task';
-import type { ProcessFormResponse, TaskDetailResponse } from '@/api/workflow/task';
+} from '@/api/workflow';
+import type { ProcessFormResponse, TaskDetailResponse } from '@/api/workflow';
 
 interface WorkflowState {
   process: Record<string, any> | null;

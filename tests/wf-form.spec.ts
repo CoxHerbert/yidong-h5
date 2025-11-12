@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import WfForm from '../components/wf-ui/components/wf-form/wf-form.vue';
 
 const stubs = {
@@ -109,5 +109,57 @@ describe('WfForm', () => {
     expect(updates).toBeTruthy();
     const lastUpdate = updates?.pop()?.[0];
     expect(lastUpdate?.name).toBe('测试');
+  });
+
+  it('supports dynamic subforms with events and mutations', async () => {
+    const dynamicChange = vi.fn();
+    const dynamicOption = {
+      menuBtn: false,
+      column: [
+        {
+          prop: 'items',
+          label: '费用明细',
+          type: 'dynamic',
+          children: {
+            title: '费用项',
+            column: [
+              {
+                prop: 'item',
+                label: '事项',
+                type: 'input',
+                change: ({ value, index }: any) => dynamicChange({ value, index }),
+              },
+              { prop: 'cost', label: '金额', type: 'number' },
+            ],
+          },
+        },
+      ],
+    };
+
+    const wrapper = mount(WfForm, {
+      props: { modelValue: { items: [] }, option: dynamicOption },
+      global: { stubs },
+    });
+
+    const addBtn = wrapper.findAll('button').find((btn) => btn.text() === '新增');
+    expect(addBtn).toBeTruthy();
+    await addBtn!.trigger('click');
+
+    expect(wrapper.findAll('.wf-dynamic__item').length).toBe(1);
+
+    const input = wrapper.findAll('input.van-field')[0];
+    await input.setValue('机票');
+
+    expect(dynamicChange).toHaveBeenCalledWith({ value: '机票', index: 0 });
+
+    const removeBtn = wrapper.findAll('button').find((btn) => btn.text() === '移除');
+    expect(removeBtn).toBeTruthy();
+    await removeBtn!.trigger('click');
+    expect(wrapper.findAll('.wf-dynamic__item').length).toBe(0);
+
+    const updates = wrapper.emitted('update:modelValue');
+    expect(updates).toBeTruthy();
+    const latest = updates?.pop()?.[0];
+    expect(Array.isArray(latest?.items)).toBe(true);
   });
 });

@@ -1,5 +1,11 @@
 <template>
-  <van-popup v-model:show="visible" position="bottom" round class="workflow-user-selector">
+  <van-popup
+    v-model:show="visible"
+    position="bottom"
+    round
+    class="workflow-user-selector"
+    data-testid="workflow-user-selector"
+  >
     <div class="workflow-user-selector__header">
       <div class="workflow-user-selector__title">{{ title }}</div>
       <van-icon name="cross" class="workflow-user-selector__close" @click="handleCancel" />

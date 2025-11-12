@@ -1,5 +1,5 @@
 <template>
-  <div class="workflow-timeline">
+  <div class="workflow-timeline" data-testid="workflow-timeline">
     <van-steps direction="vertical" :active="activeStep">
       <van-step v-for="(item, index) in filteredFlow" :key="index">
         <template #title>

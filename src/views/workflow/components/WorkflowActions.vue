@@ -1,11 +1,12 @@
 <template>
-  <div v-if="process" class="workflow-actions">
+  <div v-if="process" class="workflow-actions" data-testid="workflow-actions">
     <div v-if="process.status === 'todo'" class="workflow-actions__primary">
       <van-button
         v-if="getButton('wf_pass')"
         type="primary"
         block
         :loading="loading"
+        data-testid="action-pass"
         @click="$emit('examine', true)"
       >
         {{
@@ -20,13 +21,14 @@
         plain
         block
         :loading="loading"
+        data-testid="action-reject"
         @click="$emit('examine', false)"
       >
         {{ nodeList.length > 1 ? getButton('wf_reject').name : '取消申请' }}
       </van-button>
     </div>
     <div v-if="process.status === 'todo' && moreOptions.length" class="workflow-actions__more">
-      <van-dropdown-menu>
+      <van-dropdown-menu data-testid="action-more">
         <van-dropdown-item
           v-model="selectedAction"
           :options="moreOptions"
@@ -36,8 +38,21 @@
       </van-dropdown-menu>
     </div>
     <div v-if="process.status === 'done' && process.isOwner && process.isReturnable" class="workflow-actions__primary">
-      <van-button type="warning" plain block :loading="loading" @click="confirmWithdraw('start')">撤回</van-button>
-      <van-button type="danger" block :loading="loading" @click="confirmWithdraw('end')">撤销</van-button>
+      <van-button
+        type="warning"
+        plain
+        block
+        :loading="loading"
+        data-testid="action-withdraw"
+        @click="confirmWithdraw('start')"
+      >撤回</van-button>
+      <van-button
+        type="danger"
+        block
+        :loading="loading"
+        data-testid="action-terminate"
+        @click="confirmWithdraw('end')"
+      >撤销</van-button>
     </div>
 
     <van-action-sheet
@@ -46,6 +61,7 @@
       cancel-text="取消"
       close-on-click-action
       description="选择要退回到的节点"
+      data-testid="action-rollback-sheet"
       @select="handleNodeSelect"
     />
   </div>

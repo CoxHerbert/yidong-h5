@@ -1,5 +1,5 @@
 <template>
-  <div v-if="src" class="workflow-bpmn">
+  <div v-if="src" class="workflow-bpmn" data-testid="workflow-bpmn">
     <iframe :src="src" class="workflow-bpmn__frame" @load="loading = false" />
     <div v-if="loading" class="workflow-bpmn__loading">
       <van-loading type="spinner" size="24px" />

@@ -1,5 +1,5 @@
 <template>
-  <div class="workflow-exam-form">
+  <div class="workflow-exam-form" data-testid="workflow-exam-form">
     <van-cell-group inset>
       <van-field
         v-if="!state.hideComment"
