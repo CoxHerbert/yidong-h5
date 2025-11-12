@@ -41,10 +41,10 @@ export default {
                             const data = r.data;
                             if (data) name.push(data.realName);
                         });
-                        this.$set(this, 'name', name.join(','));
+                        this.name = name.join(',');
                     });
                 } else {
-                    this.$set(this, 'name', '');
+                    this.name = '';
                 }
             },
             immediate: true,

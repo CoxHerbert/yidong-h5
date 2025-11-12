@@ -103,7 +103,9 @@ export default {
             }).then((res) => {
                 const { records, total } = res.data;
                 if (this.current == 0) {
-                    this.$set(this.tabList[0], 'count', total);
+                    this.tabList = this.tabList.map((item, index) => (
+                        index === 0 ? { ...item, count: total } : item
+                    ));
                     this.showBtn = true;
                 }
                 if (records.length < size) this.loadStatus = 'nomore';

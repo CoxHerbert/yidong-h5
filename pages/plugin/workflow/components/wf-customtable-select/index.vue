@@ -234,10 +234,10 @@ export default {
                 const checkList = [];
                 this.list.forEach((l) => {
                     if (l.checked || checks.includes(l.id)) {
-                        this.$set(l, 'checked', true);
+                        l.checked = true;
                         checkList.push(l);
                         this.checkList.add(l);
-                    } else this.$set(l, 'checked', false);
+                    } else l.checked = false;
                 });
                 if (checkList.length == this.list.length) this.allChecked = true;
                 else this.allChecked = false;

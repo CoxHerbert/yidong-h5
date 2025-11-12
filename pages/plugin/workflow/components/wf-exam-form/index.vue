@@ -65,8 +65,8 @@ export default {
                 if (val.hideComment || val.hideAttachment) this.hideAttchment = true;
                 if (val.hideCopy) this.hideCopy = true;
                 if (val.hideExamine) this.hideExamine = true;
-                if (val.copyUser) this.$set(this.examineForm, 'copyUser', val.copyUser);
-                if (val.copyUserName) this.$set(this.examineForm, '$copyUser', val.copyUserName);
+                if (val.copyUser) this.examineForm.copyUser = val.copyUser;
+                if (val.copyUserName) this.examineForm.$copyUser = val.copyUserName;
             },
             deep: true,
             immediate: true,
@@ -74,16 +74,10 @@ export default {
         fileList: {
             handler(val) {
                 if (val && val.length > 0) {
-                    this.$set(
-                        this.examineForm,
-                        'attachment',
-                        val.map((v) => {
-                            return {
-                                name: v.label,
-                                url: v.value,
-                            };
-                        })
-                    );
+                    this.examineForm.attachment = val.map((v) => ({
+                        name: v.label,
+                        url: v.value,
+                    }));
                 }
             },
             deep: true,

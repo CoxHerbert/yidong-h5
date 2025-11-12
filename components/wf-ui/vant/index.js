@@ -22,6 +22,19 @@ import USearch from './u-search.vue';
 import ULoadmore from './u-loadmore.vue';
 import UEmpty from './u-empty.vue';
 import UToast from './u-toast.vue';
+import UActionSheet from './u-action-sheet.vue';
+import UAvatar from './u-avatar.vue';
+import UBackTop from './u-back-top.vue';
+import ULine from './u-line.vue';
+import ULoading from './u-loading.vue';
+import UModal from './u-modal.vue';
+import USection from './u-section.vue';
+import USkeleton from './u-skeleton.vue';
+import UTabbar from './u-tabbar.vue';
+import UTabs from './u-tabs.vue';
+import UTag from './u-tag.vue';
+import UTimeLine from './u-time-line.vue';
+import UTimeLineItem from './u-time-line-item.vue';
 
 export default [
   UForm,
@@ -48,4 +61,17 @@ export default [
   ULoadmore,
   UEmpty,
   UToast,
+  UActionSheet,
+  UAvatar,
+  UBackTop,
+  ULine,
+  ULoading,
+  UModal,
+  USection,
+  USkeleton,
+  UTabbar,
+  UTabs,
+  UTag,
+  UTimeLine,
+  UTimeLineItem,
 ];

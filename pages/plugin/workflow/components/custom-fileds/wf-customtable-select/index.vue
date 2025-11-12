@@ -35,16 +35,17 @@ export default {
                 // if (val?.id !== this.lastId) {
                 //     this.lastId = val?.id;
                 //     if (val && typeof val === 'object' && val.hasOwnProperty('id')) {
-                //         this.$set(this, 'name', val[this.column.props.label] || '');
+                //         this.name = val[this.column.props.label] || '';
                 //     } else {
-                //         this.$set(this, 'name', '');
+                //         this.name = ''; 
                 //     }
                 //     this.feedback();
                 // }
                 if (val && typeof val === 'object' && val.hasOwnProperty('id')) {
-                    this.$set(this, 'name', val[this.column.props.label] || '');
+                    const labelKey = this.column && this.column.props ? this.column.props.label : '';
+                    this.name = val && labelKey ? val[labelKey] || '' : '';
                 } else {
-                    this.$set(this, 'name', '');
+                    this.name = '';
                 }
                 // this.feedback();
             },
@@ -125,8 +126,8 @@ export default {
                 .then(async (res) => {
                     let { code, data } = res;
                     if (code == 200) {
-                        this.$set(this, 'name', data.name);
-                        this.$set(this, 'isDisabled', data.name ? true : false);
+                        this.name = data.name;
+                        this.isDisabled = !!data.name;
                         this.$emit('label-change', data);
                     }
                 });
