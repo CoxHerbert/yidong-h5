@@ -15,6 +15,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
+      pinia: path.resolve(__dirname, './src/stores/pinia-shim.ts'),
     },
   },
 });
