@@ -1,42 +1,32 @@
 <template>
-	<view class="wf-number">
-		<u-number-box
-			v-model="number"
-			:min="column.min || 0"
-			:max="column.max || 99999"
-			:step="column.step"
-			:disabled="disabled"
-			:positive-integer="false"
-			@click.native="handleClick"
-			@focus="handleFocus"
-			@blur="handleBlur"
-		></u-number-box>
-	</view>
+  <van-stepper
+    v-model="fieldValue"
+    :min="column.min ?? 0"
+    :max="column.max ?? Infinity"
+    :step="column.step ?? 1"
+    :disabled="disabled"
+    :integer="column.integer !== false"
+  />
 </template>
 
-<script>
-import Props from '../../mixins/props.js'
-export default {
-	name: 'wf-number',
-	mixins: [Props],
-	watch: {
-		text: {
-			handler(val) {
-				this.number = Number(val)
-			},
-			immediate: true
-		},
-		number(val) {
-			this.text = val
-		}
-	},
-	data() {
-		return { number: undefined }
-	}
-}
-</script>
+<script setup>
+import { computed } from 'vue';
 
-<style lang="scss" scoped>
-.wf-number {
-}
-</style>
+const props = defineProps({
+  modelValue: { type: [Number, String], default: 0 },
+  column: { type: Object, default: () => ({}) },
+  disabled: Boolean,
+});
+
+const emit = defineEmits(['update:modelValue', 'change']);
+
+const fieldValue = computed({
+  get() {
+    return props.modelValue;
+  },
+  set(val) {
+    emit('update:modelValue', val);
+    emit('change', val);
+  },
+});
+</script>

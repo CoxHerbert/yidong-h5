@@ -1,61 +1,93 @@
 <template>
-	<view class="wf-cascader">
-		<u-input
-			v-model="textLabel"
-			type="select"
-			:placeholder="getPlaceholder(column, column.type)"
-			@click="onClick"
-		/>
-		<u-popup v-model="show" mode="bottom" close-icon="close-circle" closeable>
-			<cascader :props="column.props" :itemList="dic" :title="column.label" @complete="onConfirm"></cascader>
-		</u-popup>
-	</view>
+  <div class="wf-cascader">
+    <van-field
+      v-model="displayText"
+      is-link
+      readonly
+      :placeholder="placeholder"
+      :disabled="disabled"
+      @click="open"
+    />
+    <van-popup v-model:show="show" position="bottom">
+      <van-cascader
+        v-model="innerValue"
+        :options="options"
+        :field-names="fieldNames"
+        title="选择"
+        @close="show = false"
+        @finish="handleFinish"
+      />
+    </van-popup>
+  </div>
 </template>
 
-<script>
-import Props from '../../mixins/props.js'
+<script setup>
+import { computed, ref, watch } from 'vue';
+import { useFieldValue } from '../../composables/useFieldValue.js';
+import { DIC_PROPS } from '../../util/variable.js';
 
-import Cascader from './components/cascader'
-export default {
-	name: 'wf-cascader',
-	components: { Cascader },
-	mixins: [Props],
-	watch: {
-		dic: {
-			handler(val) {
-					if (!this.validateNull(val)) this.initTextLabel()
-			},
-			deep: true
-		}
-	},
-	data() {
-		return {
-			show: false,
-			textLabel: '',
-		}
-	},
-	methods: {
-		onClick() {
-			if (!this.disabled) this.show = true
-			this.handleClick()
-		},
-		onConfirm(val) {
-			const { result } = val
-			const value = val[this.valueKey]
-			if (this.column.type == 'cascader') this.text = result.map(r => r[this.valueKey])
-			else this.text = value
-			this.show = false
-		}
-	}
+const props = defineProps({
+  modelValue: { type: [String, Array], default: undefined },
+  column: { type: Object, default: () => ({}) },
+  dic: { type: Array, default: () => [] },
+  disabled: Boolean,
+  dynamicIndex: Number,
+});
+
+const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change']);
+
+const { value, textLabel, placeholder, click } = useFieldValue(props, emit);
+
+const show = ref(false);
+const innerValue = ref([]);
+
+const fieldNames = computed(() => {
+  const propsMap = { ...DIC_PROPS, ...(props.column.props || {}) };
+  return {
+    text: propsMap.label,
+    value: propsMap.value,
+    children: propsMap.children,
+  };
+});
+
+const options = computed(() => props.dic || []);
+
+const displayText = computed({
+  get() {
+    return textLabel.value || '';
+  },
+  set() {},
+});
+
+watch(
+  () => value.value,
+  (val) => {
+    if (Array.isArray(val)) {
+      innerValue.value = val;
+    } else if (typeof val === 'string' && val) {
+      innerValue.value = val.split(props.column.separator || ',');
+    } else {
+      innerValue.value = [];
+    }
+  },
+  { immediate: true }
+);
+
+function open(event) {
+  click(event);
+  if (disabled) return;
+  show.value = true;
+}
+
+function handleFinish({ selectedOptions }) {
+  const values = selectedOptions.map((item) => item[fieldNames.value.value]);
+  value.value = props.column.emitPath === false ? values[values.length - 1] : values;
+  show.value = false;
 }
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .wf-cascader {
-	width: 100%;
-
-	::v-deep.u-close--top-right {
-		top: 20rpx;
-	}
+  width: 100%;
 }
 </style>

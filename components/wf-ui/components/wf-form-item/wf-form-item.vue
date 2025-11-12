@@ -1,317 +1,124 @@
 <template>
-    <view class="wf-form-item">
-        <u-form-item
-            :label="column.label ? column.label + '：' : ''"
-            :prop="column.prop"
-            :label-width="column.labelWidth || labelWidth || 180"
-            :label-position="column.type == 'dynamic' ? 'top' : 'left'"
-            :required="!validateNull(column.rules)"
-            class="wf-form-item-label"
-        >   
-        
-            <!-- <component :is="getComponent(item)" v-bind="Object.assign(item)"></component> -->
-            <wf-input
-                v-if="[undefined, 'input', 'password', 'textarea', 'number'].includes(column.type) && !column.component"
-                v-model="text"
-                :column="column"
-                :disabled="disabled"
-                @change="handleLabelChange"
-                :dynamic-index="dynamicIndex"
-            ></wf-input>
-            <wf-select
-                v-else-if="['select'].includes(column.type)"
-                v-model="text"
-                :column="column"
-                :dic="dic"
-                :disabled="disabled"
-                @label-change="handleLabelChange"
-                :dynamic-index="dynamicIndex"
-            ></wf-select>
-            <wf-cascader
-                v-else-if="['cascader', 'tree'].includes(column.type)"
-                v-model="text"
-                :column="column"
-                :dic="dic"
-                :disabled="disabled"
-                @label-change="handleLabelChange"
-                :dynamic-index="dynamicIndex"
-            ></wf-cascader>
-            <wf-radio
-                v-else-if="'radio' == column.type"
-                v-model="text"
-                :column="column"
-                :dic="dic"
-                :disabled="disabled"
-                @label-change="handleLabelChange"
-                :dynamic-index="dynamicIndex"
-            ></wf-radio>
-            <wf-checkbox
-                v-else-if="'checkbox' == column.type"
-                v-model="text"
-                :column="column"
-                :dic="dic"
-                :disabled="disabled"
-                @label-change="handleLabelChange"
-                :dynamic-index="dynamicIndex"
-            ></wf-checkbox>
-            <wf-rate
-                v-else-if="'rate' == column.type"
-                v-model="text"
-                :column="column"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></wf-rate>
-            <wf-slider
-                v-else-if="'slider' == column.type"
-                v-model="text"
-                :column="column"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></wf-slider>
-            <wf-switch
-                v-else-if="'switch' == column.type"
-                v-model="text"
-                :column="column"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></wf-switch>
-            <wf-date
-                v-else-if="DATE_LIST.includes(column.type)"
-                v-model="text"
-                :column="column"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></wf-date>
-            <wf-upload
-                v-else-if="'upload' == column.type"
-                v-model="text"
-                :column="column"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></wf-upload>
-            <wf-dynamic
-                v-else-if="'dynamic' == column.type"
-                v-model="text"
-                ref="temp"
-                :column="column"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></wf-dynamic>
-            <wf-map
-                v-else-if="'map' == column.type"
-                v-model="text"
-                ref="temp"
-                :column="column"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></wf-map>
-            <wf-table-select
-                v-else-if="'table-select' == column.type"
-                v-model="text"
-                ref="temp"
-                :column="column"
-                :disabled="disabled"
-                @label-change="handleLabelChange"
-                :dynamic-index="dynamicIndex"
-            ></wf-table-select>
-
-            <wf-sign
-                v-else-if="'sign' == column.type"
-                v-model="text"
-                ref="temp"
-                :column="column"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></wf-sign>
-            <!-- #ifdef H5-->
-            <!-- <component
-                v-if="!column.type && column.component"
-                :is="column.component"
-                v-model="text"
-                v-bind="column"
-                :column="Object.assign(column, column.params || {})"
-                :dic="dic"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></component> -->
-            <!-- #endif -->
-
-            <WkfUserSelect
-                v-else-if="'wf-user-select' == column.component"
-                v-model="text"
-                :column="Object.assign(column, column.params || {})"
-                :check-type="column.params ? column.params.checkType : 'radio'"
-                :dic="dic"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-                @label-change="handleLabelChange"
-            ></WkfUserSelect>
-
-            <Customtable
-                v-else-if="
-                    ['wf-vo-select', 'wf-prdmo-select', 'wf-plan-select', 'wf-withdrawn-select'].includes(
-                        column.component
-                    )
-                "
-                v-model="text"
-                :column="column"
-                :check-type="column.params ? column.params.checkType : 'radio'"
-                :disabled="disabled"
-                @label-change="handleLabelChange"
-                :dynamic-index="dynamicIndex"
-            ></Customtable>
-            <!-- 物料选择 -->
-            <!-- {{ column.change }} -->
-            <MaterialTable
-                v-else-if="['wf-wl-select'].includes(column.component)"
-                v-model="text"
-                :column="column"
-                @label-change="handleLabelChange"
-                :check-type="column.params ? column.params.checkType : 'radio'"
-                :disabled="disabled"
-                :dynamic-index="dynamicIndex"
-            ></MaterialTable>
-
-            <!-- 模糊物料查询 -->
-            <Vaguecustomtableselect
-                v-else-if="['wf-fuzzymaterial-select'].includes(column.component)"
-                v-model="text"
-                :column="column"
-                :check-type="column.params ? column.params.checkType : 'radio'"
-                :disabled="disabled"
-                @label-change="handleLabelChange"
-                :dynamic-index="dynamicIndex"
-            ></Vaguecustomtableselect>
-               <!-- 用户组件 -->
-            <template v-else-if="column.component === 'wf-radio-select'">
-                <WfUserSelect v-if="isUser(column)" v-model="text" :readonly="column.readonly" :disabled="column.disabled" />
-                    <!-- <wf-user-select v-if="column?.children?.props?.url === '/blade-system/search/user'" v-model="text" :checkType="column?.param?.checkType || 'radio'" :placeholder="`请选择${column?.label}`" >
-                    </wf-user-select> -->
-            </template>
-            <WfFeasibility v-if="column.component === 'wf-feasibility'" v-model="text"> </WfFeasibility>
-        </u-form-item>
-    </view>
+  <div class="wf-form-item">
+    <div class="wf-form-item__label" v-if="column.label">
+      <span class="wf-form-item__label-text">{{ column.label }}</span>
+      <span v-if="required" class="wf-form-item__required">*</span>
+    </div>
+    <div class="wf-form-item__control">
+      <component
+        :is="componentName"
+        v-model="value"
+        :column="column"
+        :dic="dic"
+        :disabled="disabled"
+        :dynamic-index="dynamicIndex"
+        @label-change="emitLabelChange"
+      />
+    </div>
+    <div v-if="column.tips" class="wf-form-item__tips">{{ column.tips }}</div>
+  </div>
 </template>
 
-<script>
-import WkfUserSelect from '@/pages/plugin/workflow/components/custom-fileds/wf-user-select/index.vue';
-import WfFeasibility from '@/pages/plugin/workflow/components/wf-feasibility/wf-feasibility.vue';
-import WfUserSelect from '@/pages/plugin/workflow/components/custom-fileds/wf-user-select/index.vue';
-import Customtable from '@/pages/plugin/workflow/components/custom-fileds/wf-customtable-select/index.vue';
-import MaterialTable from '@/pages/plugin/workflow/components/custom-fileds/wf-material-select/index.vue';
-import Vaguecustomtableselect from '@/pages/plugin/workflow/components/custom-fileds/wf-fuzzymaterial-select/index.vue';
+<script setup>
+import { computed } from 'vue';
+import WfInput from '../wf-input/wf-input.vue';
+import WfSelect from '../wf-select/wf-select.vue';
+import WfRadio from '../wf-radio/wf-radio.vue';
+import WfCheckbox from '../wf-checkbox/wf-checkbox.vue';
+import WfSwitch from '../wf-switch/wf-switch.vue';
+import WfRate from '../wf-rate/wf-rate.vue';
+import WfSlider from '../wf-slider/wf-slider.vue';
+import WfDate from '../wf-date/wf-date.vue';
+import WfUpload from '../wf-upload/wf-upload.vue';
+import WfNumber from '../wf-number/wf-number.vue';
+import WfCascader from '../wf-cascader/wf-cascader.vue';
 
-import { DATE_LIST } from '../../util/variable.js';
-import { mpFormInitVal } from '../../util/dataformat.js';
-export default {
-    name: 'wf-form-item',
-    components: { 
-        WfFeasibility,
-        WkfUserSelect,
-        WfUserSelect,
-        Customtable, 
-        MaterialTable,
-        Vaguecustomtableselect
-     },
-    props: {
-        column: {
-            type: Object,
-            default: () => {
-                return {};
-            },
-        },
-        value: {
-            type: [Object, Array, String, Number],
-        },
-        disabled: {
-            type: Boolean,
-            default: false,
-        },
-        dic: {
-            type: Array,
-            default: () => {
-                return [];
-            },
-        },
-        labelPosition: String,
-        labelWidth: Number,
-        dynamicIndex: undefined,
-    },
-    watch: {
-        text: {
-            handler(val) {
-                if (this.init || !this.validateNull(val)) {
-                    this.init = true;
-                    this.$emit('input', val);
-                    this.$emit('change', val);
-                } else {
-                    this.init = true;
-                }
-            },
-        },
-        value: {
-            handler(val) {
-                // if (val && val.includes('userInfo')) {
-                //     let index = val.lastIndexOf('.') + 1;
-                //     let name = val.substring(index, val.length - 1);
-                //     val = this.$store.getters.userInfo[name];
-                // }
-                // #ifdef MP
-                this.text = val || mpFormInitVal(this.column);
+const props = defineProps({
+  modelValue: { type: [String, Number, Array, Object, Boolean], default: undefined },
+  column: { type: Object, required: true },
+  dic: { type: Array, default: () => [] },
+  disabled: Boolean,
+  dynamicIndex: Number,
+});
 
-                // #endif
-                // #ifndef MP
-                this.text = val;
-                // #endif
-            },
-            immediate: true,
-        },
-    },
-    computed: {
-        params() {
-            return this.column.params || {};
-        },
-        event() {
-            return this.column.event || {};
-        },
-    },
-    data() {
-        return { text: undefined, init: false, DATE_LIST };
-    },
-    methods: {
-        isUser(column) {
-            return column?.children?.props?.url === '/blade-system/search/user'
-        },
-        handleLabelChange(val) {
-            this.text = val;
-            this.$emit('label-change', {
-                prop: this.column.prop,
-                value: val,
-                index: this.dynamicIndex,
-                change: this.column.change,
-            });
-        },
-    },
-};
+const emit = defineEmits(['update:modelValue', 'change', 'label-change']);
+
+const value = computed({
+  get() {
+    return props.modelValue;
+  },
+  set(val) {
+    emit('update:modelValue', val);
+    emit('change', val);
+  },
+});
+
+const componentName = computed(() => {
+  const type = props.column.type || 'input';
+  const map = {
+    input: WfInput,
+    textarea: WfInput,
+    password: WfInput,
+    number: WfNumber,
+    select: WfSelect,
+    cascader: WfCascader,
+    tree: WfCascader,
+    radio: WfRadio,
+    checkbox: WfCheckbox,
+    switch: WfSwitch,
+    rate: WfRate,
+    slider: WfSlider,
+    date: WfDate,
+    dates: WfDate,
+    datetime: WfDate,
+    datetimerange: WfDate,
+    daterange: WfDate,
+    time: WfDate,
+    timerange: WfDate,
+    upload: WfUpload,
+  };
+  return map[type] || WfInput;
+});
+
+const required = computed(() => {
+  const rules = props.column.rules || [];
+  return rules.some((rule) => rule.required);
+});
+
+function emitLabelChange(value) {
+  emit('label-change', value);
+}
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .wf-form-item {
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.wf-form-item-label {
-    position: relative;
-    // padding-left: 20rpx;
-    box-sizing: border-box;
-    min-height: auto;
-    line-height: 1;
+
+.wf-form-item__label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: #646566;
 }
-.normal-form-item {
-    display: flex;
-    align-items: flex-start;
-    flex-wrap: nowrap;
+
+.wf-form-item__label-text {
+  flex: 0 0 auto;
 }
-.dynamic-form-item {
-    display: block;
+
+.wf-form-item__required {
+  color: #ee0a24;
+}
+
+.wf-form-item__control {
+  width: 100%;
+}
+
+.wf-form-item__tips {
+  font-size: 12px;
+  color: #969799;
 }
 </style>

@@ -1,63 +1,34 @@
 <template>
-	<view class="wf-slider">
-		<u-slider
-			:value="startValue"
-			:endValue="endValue"
-			:section="column.range"
-			:disabled="disabled"
-			@change="onChange"
-		></u-slider>
-		<span class="wf-slider__text">{{ showText }}</span>
-	</view>
+  <van-slider
+    v-model="fieldValue"
+    :min="column.min ?? 0"
+    :max="column.max ?? 100"
+    :step="column.step ?? 1"
+    :disabled="disabled"
+    :range="column.range === true"
+    :bar-height="column.barHeight"
+    :button-size="column.buttonSize"
+  />
 </template>
 
-<script>
-import Props from '../../mixins/props.js'
+<script setup>
+import { computed } from 'vue';
 
-import Slider from './components/slider'
+const props = defineProps({
+  modelValue: { type: [Number, Array], default: 0 },
+  column: { type: Object, default: () => ({}) },
+  disabled: Boolean,
+});
 
-export default {
-	name: 'wf-slider',
-	mixins: [Props],
-	components: { 'u-slider': Slider },
-	watch: {
-		text: {
-			handler(val) {
-				this.initValue()
-				this.handleChange(val)
-			}
-		}
-	},
-	computed: {
-		showText() {
-			if (typeof this.text == 'object') return this.text.join(',')
-			else return this.text
-		}
-	},
-	data() {
-		return { text: 0, startValue: 0, endValue: 0 }
-	},
-	methods: {
-		initValue() {
-			const value = (this.text + '').split(',')
-			if (this.column.range) this.endValue = Number(value[1]) || 0
-			this.startValue = Number(value[0]) || 0
-		},
-		onChange({ value, endValue }) {
-			if (!value) return
-			if (this.column.range) this.text = [value, endValue]
-			else this.text = value
-		}
-	}
-}
+const emit = defineEmits(['update:modelValue', 'change']);
+
+const fieldValue = computed({
+  get() {
+    return props.modelValue;
+  },
+  set(val) {
+    emit('update:modelValue', val);
+    emit('change', val);
+  },
+});
 </script>
-
-<style lang="scss" scoped>
-.wf-slider {
-	display: flex;
-	align-items: center;
-	&__text {
-		margin-left: 20rpx;
-	}
-}
-</style>
