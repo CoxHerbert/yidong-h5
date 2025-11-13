@@ -2,7 +2,10 @@
   <router-view />
 </template>
 
-<script setup lang="ts">
+<script>
+export default {
+  name: 'App',
+};
 </script>
 
 <style scoped>

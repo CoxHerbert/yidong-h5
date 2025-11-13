@@ -3,27 +3,10 @@ import { useRoute, useRouter } from 'vue-router';
 import { showToast } from 'vant';
 
 import { useWorkflowStore } from '@/stores/workflow';
-import type { ProcessFormResponse, TaskDetailResponse } from '@/api/workflow/task';
-
-interface ExamineFormExpose {
-  examineForm: {
-    comment?: string;
-    copyUser?: string | string[];
-    $copyUser?: string | string[];
-    assignee?: string | string[];
-    $assignee?: string | string[];
-    attachment?: unknown;
-  };
-}
-
-interface UserSelectionPayload {
-  id: string | string[];
-  name?: string | string[];
-}
 
 const events = ['change', 'blur', 'click', 'focus'];
 
-function encodePayload(payload: unknown): string {
+function encodePayload(payload) {
   const json = JSON.stringify(payload ?? {});
   if (typeof window !== 'undefined' && typeof window.btoa === 'function') {
     const binary = new TextEncoder().encode(json);
@@ -39,7 +22,7 @@ function encodePayload(payload: unknown): string {
   return json;
 }
 
-function decodePayload<T = Record<string, any>>(value?: string | null): T | null {
+function decodePayload(value) {
   if (!value) return null;
   try {
     let json = '';
@@ -52,16 +35,16 @@ function decodePayload<T = Record<string, any>>(value?: string | null): T | null
     } else {
       json = value;
     }
-    return JSON.parse(json) as T;
+    return JSON.parse(json);
   } catch (error) {
     console.error('[workflow] decode payload failed', error);
     return null;
   }
 }
 
-function dateFormat(date: Date, format = 'yyyy-MM-dd hh:mm:ss') {
+function dateFormat(date, format = 'yyyy-MM-dd hh:mm:ss') {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
-  const map: Record<string, number> = {
+  const map = {
     'M+': date.getMonth() + 1,
     'd+': date.getDate(),
     'h+': date.getHours(),
@@ -77,13 +60,16 @@ function dateFormat(date: Date, format = 'yyyy-MM-dd hh:mm:ss') {
   Object.keys(map).forEach((pattern) => {
     if (new RegExp(`(${pattern})`).test(fmt)) {
       const value = map[pattern];
-      fmt = fmt.replace(RegExp.$1, RegExp.$1.length === 1 ? `${value}` : `00${value}`.slice(`${value}`.length));
+      fmt = fmt.replace(
+        RegExp.$1,
+        RegExp.$1.length === 1 ? `${value}` : `00${value}`.slice(`${value}`.length)
+      );
     }
   });
   return fmt;
 }
 
-function resolveDefaultValue(value: unknown): unknown {
+function resolveDefaultValue(value) {
   if (typeof value !== 'string') return value;
   if (!value.includes('${') || !value.includes('}')) {
     return value;
@@ -109,13 +95,13 @@ export function useWorkflowForm() {
   const waiting = ref(true);
   const comment = ref('');
   const submitting = ref(false);
-  const examineFormRef = ref<ExamineFormExpose>();
+  const examineFormRef = ref(null);
 
   const userSelectorVisible = ref(false);
   const userSelector = reactive({
     type: '',
-    checkType: 'radio' as 'radio' | 'checkbox',
-    defaultChecked: null as string | string[] | null,
+    checkType: 'radio',
+    defaultChecked: null,
   });
 
   const process = computed(() => store.process);
@@ -123,7 +109,7 @@ export function useWorkflowForm() {
   const flow = computed(() => store.flow);
   const bpmnOption = computed(() => store.bpmnOption);
 
-  function dynamicRoute(row: Record<string, any>, type: 'detail' | 'start', options: { async?: boolean } = {}) {
+  function dynamicRoute(row, type, options = {}) {
     const { id, taskId, processInstanceId, processId, formKey, appFormUrl } = row;
     const param = encodePayload({
       processId: id,
@@ -154,24 +140,20 @@ export function useWorkflowForm() {
     return Promise.resolve();
   }
 
-  function filterAvueColumn(
-    column: any[] = [],
-    taskForm: any[] = [],
-    props: { label: string; prop: string } = { label: 'label', prop: 'prop' }
-  ) {
+  function filterAvueColumn(column = [], taskForm = [], props = { label: 'label', prop: 'prop' }) {
     if (!Array.isArray(column) || column.length === 0) {
-      return { column, vars: [] as string[] };
+      return { column, vars: [] };
     }
 
-    const values: any[] = [];
-    const vars: string[] = [];
+    const values = [];
+    const vars = [];
     const context = {
       dateFormat,
       getDefaultValues: resolveDefaultValue,
     };
 
     column.forEach((col) => {
-      const permission = taskForm?.find?.((item: any) => item.id === col?.[props.prop]);
+      const permission = taskForm?.find?.((item) => item.id === col?.[props.prop]);
       if (!permission || !permission.readable) return;
 
       events.forEach((event) => {
@@ -219,7 +201,7 @@ export function useWorkflowForm() {
       }
 
       if (Array.isArray(col.rules) && col.pattern) {
-        col.rules.forEach((rule: any) => {
+        col.rules.forEach((rule) => {
           if (rule.pattern) {
             rule.pattern = new RegExp(col.pattern);
           }
@@ -232,7 +214,7 @@ export function useWorkflowForm() {
     return { column: values, vars };
   }
 
-  async function loadStartForm(processDefId: string) {
+  async function loadStartForm(processDefId) {
     waiting.value = true;
     try {
       const data = await store.fetchStartForm(processDefId);
@@ -245,7 +227,7 @@ export function useWorkflowForm() {
     }
   }
 
-  async function submitStartForm(form: Record<string, any>, extras?: { copyUser?: any; assignee?: any }) {
+  async function submitStartForm(form, extras) {
     const payload = { ...form };
     if (extras) {
       Object.assign(payload, extras);
@@ -253,7 +235,7 @@ export function useWorkflowForm() {
     await store.submitStartForm(payload);
   }
 
-  async function loadTaskDetail(taskId: string, processInsId?: string) {
+  async function loadTaskDetail(taskId, processInsId) {
     waiting.value = true;
     try {
       const data = await store.fetchTaskDetail(taskId, processInsId);
@@ -263,13 +245,7 @@ export function useWorkflowForm() {
     }
   }
 
-  async function completeTaskAction(options: {
-    pass: boolean;
-    variables?: Record<string, any>;
-    text?: string;
-    processOverride?: Record<string, any>;
-    examineForm?: ExamineFormExpose['examineForm'];
-  }) {
+  async function completeTaskAction(options) {
     const { pass, variables = {}, text, processOverride, examineForm } = options;
     const processData = processOverride ?? process.value;
     if (!processData) {
@@ -310,7 +286,7 @@ export function useWorkflowForm() {
     }
   }
 
-  async function rollbackTaskAction(nodeId: string) {
+  async function rollbackTaskAction(nodeId) {
     if (!process.value) return;
     submitting.value = true;
     try {
@@ -332,7 +308,7 @@ export function useWorkflowForm() {
     }
   }
 
-  async function withdrawTaskAction(withdrawType: string) {
+  async function withdrawTaskAction(withdrawType) {
     if (!process.value) return;
     submitting.value = true;
     try {
@@ -361,7 +337,7 @@ export function useWorkflowForm() {
     }
   }
 
-  function openUserSelector(options: { type: string; checkType?: 'radio' | 'checkbox' }) {
+  function openUserSelector(options) {
     const { type, checkType = 'radio' } = options;
     const examineForm = examineFormRef.value?.examineForm;
     if (!comment.value && ['transfer', 'delegate'].includes(type)) {
@@ -369,9 +345,9 @@ export function useWorkflowForm() {
       return;
     }
     if (type === 'assignee') {
-      userSelector.defaultChecked = (examineForm?.assignee as any) ?? null;
+      userSelector.defaultChecked = examineForm?.assignee ?? null;
     } else if (type === 'copy') {
-      userSelector.defaultChecked = (examineForm?.copyUser as any) ?? null;
+      userSelector.defaultChecked = examineForm?.copyUser ?? null;
     } else {
       userSelector.defaultChecked = null;
     }
@@ -380,7 +356,7 @@ export function useWorkflowForm() {
     userSelectorVisible.value = true;
   }
 
-  async function resolveUserSelection({ id, name }: UserSelectionPayload) {
+  async function resolveUserSelection({ id, name }) {
     const type = userSelector.type;
     const examineForm = examineFormRef.value?.examineForm;
     const processData = process.value;
@@ -438,7 +414,7 @@ export function useWorkflowForm() {
     }
   }
 
-  function navigateTo(location: Parameters<typeof router.replace>[0], message?: string) {
+  function navigateTo(location, message) {
     if (message) {
       showToast(message);
       setTimeout(() => {
@@ -449,14 +425,14 @@ export function useWorkflowForm() {
     }
   }
 
-  function registerExamineForm(expose: ExamineFormExpose) {
+  function registerExamineForm(expose) {
     examineFormRef.value = expose;
   }
 
-  function extractRoutePayload<T = Record<string, any>>(): T | null {
+  function extractRoutePayload() {
     const payload = route.query.p || route.params.p;
     if (typeof payload === 'string') {
-      return decodePayload<T>(payload);
+      return decodePayload(payload);
     }
     return null;
   }
@@ -490,6 +466,4 @@ export function useWorkflowForm() {
   };
 }
 
-export type UseWorkflowFormReturn = ReturnType<typeof useWorkflowForm>;
-
-export type { ProcessFormResponse, TaskDetailResponse };
+export { decodePayload, dateFormat, resolveDefaultValue };

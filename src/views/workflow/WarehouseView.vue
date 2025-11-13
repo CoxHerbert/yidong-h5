@@ -4,8 +4,10 @@
   </div>
 </template>
 
-<script setup lang="ts">
-// Placeholder for workflow warehouse page
+<script>
+export default {
+  name: 'WorkflowWarehouseView',
+};
 </script>
 
 <style scoped>

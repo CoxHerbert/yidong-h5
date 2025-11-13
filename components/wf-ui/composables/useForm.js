@@ -2,7 +2,7 @@ import { provide, inject, ref, watch, computed } from 'vue';
 import { formInitVal, initRules, calcCascader } from '../util/dataformat.js';
 import { validateNull, deepClone } from '../util/index.js';
 
-const FORM_KEY = Symbol('wf-form');
+export const FORM_KEY = Symbol('wf-form');
 
 export function provideForm(optionRef, formValue, emit) {
     const rules = ref({});

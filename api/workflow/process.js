@@ -2,9 +2,7 @@ import http from '@/http/api.js';
 
 const prefix = '/blade-workflow/app/process';
 
-type Params = Record<string, any>;
-
-export function list(params: Params) {
+export function list(params = {}) {
   return http.request({
     url: `${prefix}/list`,
     method: 'GET',
@@ -12,7 +10,7 @@ export function list(params: Params) {
   });
 }
 
-export function todoList(params: Params) {
+export function todoList(params = {}) {
   return http.request({
     url: `${prefix}/todoList`,
     method: 'GET',
@@ -20,7 +18,7 @@ export function todoList(params: Params) {
   });
 }
 
-export function doneList(params: Params) {
+export function doneList(params = {}) {
   return http.request({
     url: `${prefix}/doneList`,
     method: 'GET',
@@ -28,7 +26,7 @@ export function doneList(params: Params) {
   });
 }
 
-export function myDoneList(params: Params) {
+export function myDoneList(params = {}) {
   return http.request({
     url: `${prefix}/myDoneList`,
     method: 'GET',
@@ -36,7 +34,7 @@ export function myDoneList(params: Params) {
   });
 }
 
-export function sendList(params: Params) {
+export function sendList(params = {}) {
   return http.request({
     url: `${prefix}/sendList`,
     method: 'GET',
@@ -44,7 +42,7 @@ export function sendList(params: Params) {
   });
 }
 
-export function claimList(params: Params) {
+export function claimList(params = {}) {
   return http.request({
     url: `${prefix}/claimList`,
     method: 'GET',

@@ -8,7 +8,13 @@
     </section>
     <section class="workflow-workbench__grid">
       <van-grid :column-num="4" :border="false">
-        <van-grid-item v-for="item in shortcuts" :key="item.name" :icon="item.icon" :text="item.name" @click="navigate(item)" />
+        <van-grid-item
+          v-for="item in shortcuts"
+          :key="item.name"
+          :icon="item.icon"
+          :text="item.name"
+          @click="navigate(item)"
+        />
       </van-grid>
     </section>
     <section class="workflow-workbench__tasks">
@@ -22,7 +28,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -30,41 +36,52 @@ import { todoList } from '@/api/workflow/process';
 
 import WorkflowTaskList from './components/WorkflowTaskList.vue';
 
-interface Shortcut {
-  name: string;
-  icon: string;
-  route: { name: string; query?: Record<string, any> };
-}
+export default {
+  name: 'WorkflowWorkbenchView',
+  components: {
+    WorkflowTaskList,
+  },
+  setup() {
+    const router = useRouter();
+    const tasks = ref([]);
+    const total = ref(0);
+    const loading = ref(false);
 
-const router = useRouter();
-const tasks = ref<Record<string, any>[]>([]);
-const total = ref(0);
-const loading = ref(false);
+    const shortcuts = [
+      { name: '我的待办', icon: 'todo-list-o', route: { name: 'workflow-mine', query: { current: '0' } } },
+      { name: '我的请求', icon: 'user-o', route: { name: 'workflow-mine', query: { current: '1' } } },
+      { name: '我的已办', icon: 'passed', route: { name: 'workflow-mine', query: { current: '2' } } },
+      { name: '办结事宜', icon: 'notes-o', route: { name: 'workflow-mine', query: { current: '3' } } },
+    ];
 
-const shortcuts: Shortcut[] = [
-  { name: '我的待办', icon: 'todo-list-o', route: { name: 'workflow-mine', query: { current: '0' } } },
-  { name: '我的请求', icon: 'user-o', route: { name: 'workflow-mine', query: { current: '1' } } },
-  { name: '我的已办', icon: 'passed', route: { name: 'workflow-mine', query: { current: '2' } } },
-  { name: '办结事宜', icon: 'notes-o', route: { name: 'workflow-mine', query: { current: '3' } } },
-];
+    async function fetchTodoList() {
+      loading.value = true;
+      try {
+        const response = await todoList({ current: 1, size: 5 });
+        const data = response?.data ?? response;
+        tasks.value = data?.records || [];
+        total.value = data?.total || tasks.value.length;
+      } finally {
+        loading.value = false;
+      }
+    }
 
-onMounted(fetchTodoList);
+    function navigate(item) {
+      router.push(item.route);
+    }
 
-async function fetchTodoList() {
-  loading.value = true;
-  try {
-    const response = await todoList({ current: 1, size: 5 });
-    const data = (response as any).data ?? response;
-    tasks.value = data?.records || [];
-    total.value = data?.total || tasks.value.length;
-  } finally {
-    loading.value = false;
-  }
-}
+    onMounted(fetchTodoList);
 
-function navigate(item: Shortcut) {
-  router.push(item.route);
-}
+    return {
+      router,
+      tasks,
+      total,
+      loading,
+      shortcuts,
+      navigate,
+    };
+  },
+};
 </script>
 
 <style scoped>

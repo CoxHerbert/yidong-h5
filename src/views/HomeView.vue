@@ -13,20 +13,30 @@
   </main>
 </template>
 
-<script setup lang="ts">
+<script>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
 
-const store = useStore();
+export default {
+  name: 'HomeView',
+  setup() {
+    const store = useStore();
 
-const message = computed(() => store.state.message);
+    const message = computed(() => store.state.message);
 
-function handlePrimaryClick() {
-  const nextMessage = message.value.includes('欢迎')
-    ? 'Vant 4 已成功接入，快去构建你的业务页面吧！'
-    : '欢迎使用全新的移动端应用框架！';
-  store.commit('setMessage', nextMessage);
-}
+    function handlePrimaryClick() {
+      const nextMessage = message.value.includes('欢迎')
+        ? 'Vant 4 已成功接入，快去构建你的业务页面吧！'
+        : '欢迎使用全新的移动端应用框架！';
+      store.commit('setMessage', nextMessage);
+    }
+
+    return {
+      message,
+      handlePrimaryClick,
+    };
+  },
+};
 </script>
 
 <style scoped>

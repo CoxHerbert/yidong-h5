@@ -18,21 +18,8 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from 'vue';
-import { useFieldValue } from '../../composables/useFieldValue.js';
-
-const props = defineProps({
-  modelValue: { type: [String, Number, Array, Object], default: undefined },
-  column: { type: Object, required: true },
-  disabled: Boolean,
-  dic: { type: Array, default: () => [] },
-  dynamicIndex: Number,
-});
-
-const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change']);
-
-const { value, placeholder, focus, blur, click } = useFieldValue(props, emit);
+<script>
+import fieldValueMixin from '../../mixins/fieldValue.js';
 
 const typeMap = {
   input: 'text',
@@ -41,21 +28,34 @@ const typeMap = {
   number: 'digit',
 };
 
-const fieldType = computed(() => typeMap[props.column.type] || 'text');
-
-const fieldValue = value;
-
-function handleFocus(event) {
-  focus(event);
-}
-
-function handleBlur(event) {
-  blur(event);
-}
-
-function handleClick(event) {
-  click(event);
-}
+export default {
+  name: 'WfInput',
+  mixins: [fieldValueMixin],
+  props: {
+    modelValue: { type: [String, Number, Array, Object], default: undefined },
+    column: { type: Object, required: true },
+    disabled: Boolean,
+    dic: { type: Array, default: () => [] },
+    dynamicIndex: Number,
+  },
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change'],
+  computed: {
+    fieldType() {
+      return typeMap[this.column.type] || 'text';
+    },
+  },
+  methods: {
+    handleFocus(event) {
+      this.focus(event);
+    },
+    handleBlur(event) {
+      this.blur(event);
+    },
+    handleClick(event) {
+      this.click(event);
+    },
+  },
+};
 </script>
 
 <style scoped>

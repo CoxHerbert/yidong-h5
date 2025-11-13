@@ -1,5 +1,11 @@
 <template>
-  <van-popup v-model:show="visible" position="bottom" round class="workflow-user-selector">
+  <van-popup
+    v-model:show="visible"
+    position="bottom"
+    round
+    class="workflow-user-selector"
+    data-testid="workflow-user-selector"
+  >
     <div class="workflow-user-selector__header">
       <div class="workflow-user-selector__title">{{ title }}</div>
       <van-icon name="cross" class="workflow-user-selector__close" @click="handleCancel" />
@@ -22,73 +28,88 @@
   </van-popup>
 </template>
 
-<script setup lang="ts">
-import { computed, reactive, watch } from 'vue';
-
-const props = defineProps<{
-  modelValue: boolean;
-  type: string;
-  checkType: 'radio' | 'checkbox';
-  defaultChecked: string | string[] | null;
-}>();
-
-const emit = defineEmits(['update:modelValue', 'confirm', 'cancel']);
-
-const visible = computed({
-  get: () => props.modelValue,
-  set: (val: boolean) => emit('update:modelValue', val),
-});
-
-const form = reactive({
-  id: '',
-  name: '',
-});
-
-watch(
-  () => props.defaultChecked,
-  (value) => {
-    if (Array.isArray(value)) {
-      form.id = value.join(',');
-      form.name = value.join(',');
-    } else if (typeof value === 'string') {
-      form.id = value;
-      form.name = value;
-    } else {
-      form.id = '';
-      form.name = '';
-    }
+<script>
+export default {
+  name: 'WorkflowUserSelector',
+  props: {
+    modelValue: { type: Boolean, default: false },
+    type: { type: String, default: '' },
+    checkType: { type: String, default: 'radio' },
+    defaultChecked: { type: [String, Array], default: null },
   },
-  { immediate: true }
-);
-
-const title = computed(() => {
-  switch (props.type) {
-    case 'transfer':
-      return '选择转办人员';
-    case 'delegate':
-      return '选择委托人员';
-    case 'addInstance':
-      return '选择加签人员';
-    case 'copy':
-      return '选择抄送人员';
-    case 'assignee':
-      return '指定审批人';
-    default:
-      return '选择人员';
-  }
-});
-
-function handleConfirm() {
-  const idValue = props.checkType === 'checkbox' ? form.id.split(',').map((item) => item.trim()).filter(Boolean) : form.id.trim();
-  const nameValue = props.checkType === 'checkbox' ? form.name.split(',').map((item) => item.trim()).filter(Boolean) : form.name.trim();
-  emit('confirm', { id: idValue, name: nameValue });
-  visible.value = false;
-}
-
-function handleCancel() {
-  emit('cancel');
-  visible.value = false;
-}
+  emits: ['update:modelValue', 'confirm', 'cancel'],
+  data() {
+    return {
+      form: {
+        id: '',
+        name: '',
+      },
+    };
+  },
+  computed: {
+    visible: {
+      get() {
+        return this.modelValue;
+      },
+      set(val) {
+        this.$emit('update:modelValue', val);
+      },
+    },
+    title() {
+      switch (this.type) {
+        case 'transfer':
+          return '选择转办人员';
+        case 'delegate':
+          return '选择委托人员';
+        case 'addInstance':
+          return '选择加签人员';
+        case 'copy':
+          return '选择抄送人员';
+        case 'assignee':
+          return '指定审批人';
+        default:
+          return '选择人员';
+      }
+    },
+  },
+  watch: {
+    defaultChecked: {
+      immediate: true,
+      handler(value) {
+        if (Array.isArray(value)) {
+          const text = value.join(',');
+          this.form.id = text;
+          this.form.name = text;
+        } else if (typeof value === 'string') {
+          this.form.id = value;
+          this.form.name = value;
+        } else {
+          this.form.id = '';
+          this.form.name = '';
+        }
+      },
+    },
+  },
+  methods: {
+    handleConfirm() {
+      const parse = (input) =>
+        this.checkType === 'checkbox'
+          ? input
+              .split(',')
+              .map((item) => item.trim())
+              .filter(Boolean)
+          : input.trim();
+      const idValue = parse(this.form.id);
+      const nameValue = parse(this.form.name);
+      this.$emit('confirm', { id: idValue, name: nameValue });
+      this.visible = false;
+    },
+    handleCancel() {
+      this.$emit('cancel');
+      this.visible = false;
+    },
+  },
+};
 </script>
 
 <style scoped>

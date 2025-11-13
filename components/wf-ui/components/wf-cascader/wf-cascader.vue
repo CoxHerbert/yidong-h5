@@ -21,69 +21,74 @@
   </div>
 </template>
 
-<script setup>
-import { computed, ref, watch } from 'vue';
-import { useFieldValue } from '../../composables/useFieldValue.js';
+<script>
+import fieldValueMixin from '../../mixins/fieldValue.js';
 import { DIC_PROPS } from '../../util/variable.js';
 
-const props = defineProps({
-  modelValue: { type: [String, Array], default: undefined },
-  column: { type: Object, default: () => ({}) },
-  dic: { type: Array, default: () => [] },
-  disabled: Boolean,
-  dynamicIndex: Number,
-});
-
-const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change']);
-
-const { value, textLabel, placeholder, click } = useFieldValue(props, emit);
-
-const show = ref(false);
-const innerValue = ref([]);
-
-const fieldNames = computed(() => {
-  const propsMap = { ...DIC_PROPS, ...(props.column.props || {}) };
-  return {
-    text: propsMap.label,
-    value: propsMap.value,
-    children: propsMap.children,
-  };
-});
-
-const options = computed(() => props.dic || []);
-
-const displayText = computed({
-  get() {
-    return textLabel.value || '';
+export default {
+  name: 'WfCascader',
+  mixins: [fieldValueMixin],
+  props: {
+    modelValue: { type: [String, Array], default: undefined },
+    column: { type: Object, default: () => ({}) },
+    dic: { type: Array, default: () => [] },
+    disabled: Boolean,
+    dynamicIndex: Number,
   },
-  set() {},
-});
-
-watch(
-  () => value.value,
-  (val) => {
-    if (Array.isArray(val)) {
-      innerValue.value = val;
-    } else if (typeof val === 'string' && val) {
-      innerValue.value = val.split(props.column.separator || ',');
-    } else {
-      innerValue.value = [];
-    }
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change'],
+  data() {
+    return {
+      show: false,
+      innerValue: [],
+    };
   },
-  { immediate: true }
-);
-
-function open(event) {
-  click(event);
-  if (disabled) return;
-  show.value = true;
-}
-
-function handleFinish({ selectedOptions }) {
-  const values = selectedOptions.map((item) => item[fieldNames.value.value]);
-  value.value = props.column.emitPath === false ? values[values.length - 1] : values;
-  show.value = false;
-}
+  computed: {
+    fieldNames() {
+      const propsMap = { ...DIC_PROPS, ...(this.column.props || {}) };
+      return {
+        text: propsMap.label,
+        value: propsMap.value,
+        children: propsMap.children,
+      };
+    },
+    options() {
+      return this.dic || [];
+    },
+    displayText: {
+      get() {
+        return this.textLabel || '';
+      },
+      set() {},
+    },
+  },
+  watch: {
+    fieldValue: {
+      immediate: true,
+      handler(val) {
+        if (Array.isArray(val)) {
+          this.innerValue = [...val];
+        } else if (typeof val === 'string' && val) {
+          const separator = this.column.separator || ',';
+          this.innerValue = val.split(separator);
+        } else {
+          this.innerValue = [];
+        }
+      },
+    },
+  },
+  methods: {
+    open(event) {
+      this.click(event);
+      if (this.disabled) return;
+      this.show = true;
+    },
+    handleFinish({ selectedOptions }) {
+      const values = selectedOptions.map((item) => item[this.fieldNames.value]);
+      this.fieldValue = this.column.emitPath === false ? values[values.length - 1] : values;
+      this.show = false;
+    },
+  },
+};
 </script>
 
 <style scoped>

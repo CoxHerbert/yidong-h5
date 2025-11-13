@@ -8,24 +8,25 @@
   />
 </template>
 
-<script setup>
-import { computed } from 'vue';
-
-const props = defineProps({
-  modelValue: { type: [Boolean, String, Number], default: undefined },
-  column: { type: Object, default: () => ({}) },
-  disabled: Boolean,
-});
-
-const emit = defineEmits(['update:modelValue', 'change']);
-
-const fieldValue = computed({
-  get() {
-    return props.modelValue;
+<script>
+export default {
+  name: 'WfSwitch',
+  props: {
+    modelValue: { type: [Boolean, String, Number], default: undefined },
+    column: { type: Object, default: () => ({}) },
+    disabled: Boolean,
   },
-  set(val) {
-    emit('update:modelValue', val);
-    emit('change', val);
+  emits: ['update:modelValue', 'change'],
+  computed: {
+    fieldValue: {
+      get() {
+        return this.modelValue;
+      },
+      set(val) {
+        this.$emit('update:modelValue', val);
+        this.$emit('change', val);
+      },
+    },
   },
-});
+};
 </script>

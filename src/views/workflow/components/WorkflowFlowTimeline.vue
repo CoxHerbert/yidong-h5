@@ -1,5 +1,5 @@
 <template>
-  <div class="workflow-timeline">
+  <div class="workflow-timeline" data-testid="workflow-timeline">
     <van-steps direction="vertical" :active="activeStep">
       <van-step v-for="(item, index) in filteredFlow" :key="index">
         <template #title>
@@ -57,23 +57,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed, ref } from 'vue';
-
-interface FlowRecord {
-  historyActivityType?: string;
-  assigneeName?: string;
-  createTime?: string;
-  historyActivityDurationTime?: string;
-  historyActivityName?: string;
-  comments?: Array<Record<string, any>>;
-  attachments?: Array<{ name: string; url: string }>;
-  endTime?: string;
-}
-
-const props = defineProps<{ flow: FlowRecord[] }>();
-
-const commentMap: Record<string, string> = {
+<script>
+const commentMap = {
   assigneeComment: '变更审核人',
   dispatchComment: '调度意见',
   transferComment: '转办意见',
@@ -87,38 +72,50 @@ const commentMap: Record<string, string> = {
   comment: '审批意见',
 };
 
-const expandedIndex = ref<number | null>(null);
-const defaultCommentCount = 1;
-
-const filteredFlow = computed(() =>
-  (props.flow || []).filter((item) => !['candidate', 'sequenceFlow'].includes(item.historyActivityType || ''))
-);
-
-const activeStep = computed(() => Math.max(filteredFlow.value.length - 1, 0));
-
-function renderNodeName(item: FlowRecord) {
-  if (item.historyActivityType === 'endEvent') {
-    return `在 [${item.createTime}] 完成流程`;
-  }
-  return `${item.assigneeName || '未指定'} 在 [${item.createTime}] 处理 [${item.historyActivityName || '未命名'}]`;
-}
-
-function visibleComments(comments: Array<Record<string, any>>, index: number) {
-  const addComments = comments.filter((c) => c.action === 'AddComment');
-  if (expandedIndex.value === index) {
-    return addComments;
-  }
-  return addComments.slice(0, defaultCommentCount);
-}
-
-function formatComment(comment: Record<string, any>) {
-  const label = commentMap[comment.type] || '审批意见';
-  return `${label}：${comment.fullMessage ?? ''}`;
-}
-
-function toggleExpand(index: number) {
-  expandedIndex.value = expandedIndex.value === index ? null : index;
-}
+export default {
+  name: 'WorkflowFlowTimeline',
+  props: {
+    flow: { type: Array, default: () => [] },
+  },
+  data() {
+    return {
+      expandedIndex: null,
+      defaultCommentCount: 1,
+    };
+  },
+  computed: {
+    filteredFlow() {
+      return (this.flow || []).filter(
+        (item) => !['candidate', 'sequenceFlow'].includes(item.historyActivityType || '')
+      );
+    },
+    activeStep() {
+      return Math.max(this.filteredFlow.length - 1, 0);
+    },
+  },
+  methods: {
+    renderNodeName(item) {
+      if (item.historyActivityType === 'endEvent') {
+        return `在 [${item.createTime}] 完成流程`;
+      }
+      return `${item.assigneeName || '未指定'} 在 [${item.createTime}] 处理 [${item.historyActivityName || '未命名'}]`;
+    },
+    visibleComments(comments, index) {
+      const addComments = comments.filter((c) => c.action === 'AddComment');
+      if (this.expandedIndex === index) {
+        return addComments;
+      }
+      return addComments.slice(0, this.defaultCommentCount);
+    },
+    formatComment(comment) {
+      const label = commentMap[comment.type] || '审批意见';
+      return `${label}：${comment.fullMessage ?? ''}`;
+    },
+    toggleExpand(index) {
+      this.expandedIndex = this.expandedIndex === index ? null : index;
+    },
+  },
+};
 </script>
 
 <style scoped>

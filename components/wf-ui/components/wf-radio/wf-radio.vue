@@ -14,32 +14,32 @@
   </van-radio-group>
 </template>
 
-<script setup>
-import { computed } from 'vue';
-import { useFieldValue } from '../../composables/useFieldValue.js';
+<script>
+import fieldValueMixin from '../../mixins/fieldValue.js';
 import { DIC_PROPS } from '../../util/variable.js';
 
-const props = defineProps({
-  modelValue: { type: [String, Number], default: undefined },
-  column: { type: Object, required: true },
-  dic: { type: Array, default: () => [] },
-  disabled: Boolean,
-  dynamicIndex: Number,
-});
-
-const emit = defineEmits(['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change']);
-
-const { value } = useFieldValue(props, emit);
-
-const propsMap = computed(() => ({ ...DIC_PROPS, ...(props.column.props || {}) }));
-
-const options = computed(() => {
-  const map = propsMap.value;
-  return (props.dic || []).map((item) => ({
-    value: item[map.value],
-    label: item[map.label],
-  }));
-});
-
-const fieldValue = value;
+export default {
+  name: 'WfRadio',
+  mixins: [fieldValueMixin],
+  props: {
+    modelValue: { type: [String, Number], default: undefined },
+    column: { type: Object, required: true },
+    dic: { type: Array, default: () => [] },
+    disabled: Boolean,
+    dynamicIndex: Number,
+  },
+  emits: ['update:modelValue', 'change', 'focus', 'blur', 'click', 'label-change'],
+  computed: {
+    propsMap() {
+      return { ...DIC_PROPS, ...(this.column.props || {}) };
+    },
+    options() {
+      const map = this.propsMap;
+      return (this.dic || []).map((item) => ({
+        value: item[map.value],
+        label: item[map.label],
+      }));
+    },
+  },
+};
 </script>

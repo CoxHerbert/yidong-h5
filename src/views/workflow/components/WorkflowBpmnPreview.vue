@@ -1,5 +1,5 @@
 <template>
-  <div v-if="src" class="workflow-bpmn">
+  <div v-if="src" class="workflow-bpmn" data-testid="workflow-bpmn">
     <iframe :src="src" class="workflow-bpmn__frame" @load="loading = false" />
     <div v-if="loading" class="workflow-bpmn__loading">
       <van-loading type="spinner" size="24px" />
@@ -8,40 +8,41 @@
   <van-empty v-else description="暂无流程图数据" />
 </template>
 
-<script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-
-interface BpmnOption {
-  processInsId?: string;
-  taskId?: string;
-  token?: string;
-}
-
-const props = defineProps<{ bpmnOption: BpmnOption | null }>();
-
-const loading = ref(true);
-
-const src = computed(() => {
-  const option = props.bpmnOption;
-  if (!option?.processInsId || !option?.taskId || !option?.token) {
-    return '';
-  }
-  const base = import.meta.env.DEV ? 'http://localhost:2888' : 'https://www.eastwinbip.com';
-  const query = new URLSearchParams({
-    processInsId: option.processInsId,
-    taskId: option.taskId,
-    token: option.token,
-  });
-  return `${base}/process-priview?${query.toString()}`;
-});
-
-watch(
-  () => props.bpmnOption,
-  () => {
-    loading.value = true;
+<script>
+export default {
+  name: 'WorkflowBpmnPreview',
+  props: {
+    bpmnOption: { type: Object, default: null },
   },
-  { deep: true }
-);
+  data() {
+    return {
+      loading: true,
+    };
+  },
+  computed: {
+    src() {
+      const option = this.bpmnOption;
+      if (!option?.processInsId || !option?.taskId || !option?.token) {
+        return '';
+      }
+      const base = import.meta.env.DEV ? 'http://localhost:2888' : 'https://www.eastwinbip.com';
+      const query = new URLSearchParams({
+        processInsId: option.processInsId,
+        taskId: option.taskId,
+        token: option.token,
+      });
+      return `${base}/process-priview?${query.toString()}`;
+    },
+  },
+  watch: {
+    bpmnOption: {
+      deep: true,
+      handler() {
+        this.loading = true;
+      },
+    },
+  },
+};
 </script>
 
 <style scoped>
